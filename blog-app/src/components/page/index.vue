@@ -8,7 +8,7 @@
 			<div class="guide-text-ico">
 				<h2 class="guide_text">
 				<div class=" container-text">
-	
+
 						<div class="my-text1"></div>
 
 				</div>
@@ -47,11 +47,11 @@ import $ from 'jquery'
 			},
 			showBiliBili(){
 				window.open("https://space.bilibili.com/36932814","_blank")
-				
+
 			},
 			showMusic(){
 				window.open("https://music.163.com/#/user/home?id=342473756","_blank")
-				
+
 			},
 			ShowWechat(){
 				//悬浮
@@ -117,7 +117,7 @@ import $ from 'jquery'
 				    return this.chars[Math.floor(Math.random() * this.chars.length)]
 				  }
 				}
-	
+
 				const phrases = [
 				  '《摩西十诫》',
 				  '独自一人',
@@ -132,10 +132,10 @@ import $ from 'jquery'
 				  '吞噬万物',
 				  '男者守戒 通过以福音 女者破戒  试炼使灾祸​',
 				]
-				
+
 				const el = document.querySelector('.my-text1')
 				const fx = new TextScramble(el)
-				
+
 				let counter = 0
 				const next = () => {
 				  fx.setText(phrases[counter]).then(() => {
@@ -161,8 +161,8 @@ import $ from 'jquery'
 		background-attachment: fixed;
 		background-size: cover;
 		z-index: -1;
-		background-image: url("http://cos.myo.pub/cover/72e934d0-df25-48dd-817e-429144bca9ab.png");
-		
+		background-image: url("https://www.loliapi.com/acg/");
+
 	}
 	.topbg::before{
 		content: '';
@@ -176,9 +176,9 @@ import $ from 'jquery'
 		background-attachment: fixed;
 	}
 	.topbg::before{
-		background-image:url(http://cos.myo.pub/BgImage/dot.gif);
+
 	}
-	
+
 	.head-guide{
 		    position: relative;
 			top: 40%;
@@ -188,7 +188,7 @@ import $ from 'jquery'
 		    z-index: 99;
 			height: 200px;
 			margin: 0 auto;
-			
+
 	}
 
 	.guide_title{
@@ -271,10 +271,10 @@ import $ from 'jquery'
 	.container-text{
 		max-height: 30px;
 		overflow: hidden;
-		
+
 	}
 	.my-text-controller{
-		
+
 	}
 
 	@media only screen and (max-width:800px) {
@@ -289,9 +289,9 @@ import $ from 'jquery'
 		.my-text1{
 			font-size: 20px;
 		}
-		
+
 	}
 
-	
-	
+
+
 </style>

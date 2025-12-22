@@ -21,7 +21,7 @@
     "lodash": "^4.17.4",
     "mavon-editor": "^2.4.16",
     "nprogress": "^0.2.0",
-    "requset": "^0.0.1-security",
+
     "vee-validate": "^4.13.2",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",

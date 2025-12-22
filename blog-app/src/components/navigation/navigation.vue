@@ -2,8 +2,8 @@
  <div ref="links" v-title data-title="导航" class="sectionImg">
 	<div class="nav-card">
 		<div class="nav-card-top">
-			<div class="image" :style="{'background-image': 'url('+'http://cos.myo.pub/icon/'+imgicon+')'}">
-
+<!--			<div class="image" :style="{'background-image': 'url('+'http://cos.myo.pub/icon/'+imgicon+')'}">-->
+      <div class="image" style='background: url("https://www.loliapi.com/acg/")'>
 			</div>
 		</div>
 	  <div class="content">
@@ -33,7 +33,7 @@
         name: "navigation",
         data(){
             return {
-				
+
 			}
         },
 		props: {
@@ -56,11 +56,11 @@
 	  border: 1px solid transparent;
 	  margin-bottom: 20px;
 	}
-	
+
 	.nav-card a {
 	  text-decoration: none
 	}
-	
+
 	.content {
 	  padding: 1.1rem;
 	}
@@ -75,7 +75,7 @@
 	  background-repeat: no-repeat;
 	  background-size: cover;
 	  background-color: rgb(239, 205, 255);
-	  
+
 	}
 
 	.title {
@@ -84,14 +84,14 @@
 	  line-height: 1.75rem;
 	  font-weight: 600;
 	}
-	
+
 	.desc {
 	  margin-top: 0.5rem;
 	  color: #6B7280;
 	  font-size: 0.875rem;
 	  line-height: 1.25rem;
 	}
-	
+
 	.action {
 	  display: inline-flex;
 	  margin-top: 1rem;
@@ -105,11 +105,11 @@
 	  padding: 4px 8px;
 	  border-radius: 4px;
 	}
-	
+
 	.action span {
 	  transition: .3s ease;
 	}
-	
+
 	.action:hover span {
 	  transform: translateX(4px);
 	}

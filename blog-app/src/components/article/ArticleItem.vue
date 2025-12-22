@@ -1,268 +1,284 @@
 <template>
-<!---->
-<div ref="article" class="article-list-thumb-list">
-<div class="article-list-thumb">
-	<div class="post-list-thumb" :style="{'flex-direction':index%2!=0?'row-reverse':''}">
-		<!-- :style="{'flex-direction':index%2!=0?'row-reverse':'row'}" -->
-		<div class="post-thumb" @click="view(id)" >
-				<div class="focus-img">
-					<img class="lszy"  :src="cover">
-					<p>sss</p>
-					</img>
-				</div>
-		</div>
-		<div class="post-thumb-content":style=
-		"{
-			
-		}">
-			<div class="post-content-wrap" :style=
-		"{
-			'text-align':index%2==0?'right':'left',
-		}">
-				<div class="post-content">
-						<div class="me-artile-date">
-							<i class="iconfont icon-31shijian"></i>&nbsp;{{createDate | format}}
-						</div>
-						<div class="me-article-title">
-							<h3 @click="view(id)">{{title}}</h3>
-						</div>
+  <div class="comic-card-wrap">
+    <div
+      class="comic-card"
+      :class="{ 'is-reverse': textalign(index) === 'right' }"
+      @click="view(id)"
+    >
 
-						<div class="main-food">
-							<div class="main-food-item">
-								
-								<i class="iconfont icon-liulan"></i>&nbsp;<span>{{viewCounts}}</span><i class="iconfont icon-centigrade"></i>
-								
-								<i class="iconfont icon-biaoqian food-item"></i>&nbsp;
-									<span v-for="(t,index) in tags" :key="index" size="mini" type="success" class="tagName">
-										<el-link :underline="false"  type="success" v-if="1==1">
-										{{t.tagName}}
-										</el-link>
-									</span>
-								
-								<i class="iconfont icon-jiqiren_o food-item"></i>&nbsp;{{author}}
-							</div>
-						</div>
-						
-						<div class="float-content">
-							<p class="me-artile-summary">
-								{{summary}}
-							</p>
-							
-						</div>
-					
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-</div>	
-<!---->
+      <div class="comic-img-box">
+        <img :src="Imgview(index)" class="comic-cover" alt="cover">
+        <div class="img-mask">
+          <span class="mask-text">READ</span>
+        </div>
+      </div>
 
+      <div class="comic-content">
+        <div class="bg-number">{{ index + 1 < 10 ? '0' + (index + 1) : index + 1 }}</div>
+
+        <div class="meta-header">
+           <span class="date-tag">
+             <i class="el-icon-date"></i> {{ createDate }}
+           </span>
+        </div>
+
+        <h3 class="comic-title">
+          <span class="hashtag">#</span> {{ title }}
+        </h3>
+
+        <div class="comic-summary">
+          {{ summary }}
+        </div>
+
+        <div class="comic-footer">
+          <div class="tags-group">
+            <el-tag
+              v-for="tag in tags"
+              :key="tag.id"
+              size="mini"
+              type="info"
+              effect="plain"
+              class="comic-tag">
+              {{ tag.tagName }}
+            </el-tag>
+          </div>
+
+          <div class="stats-group">
+            <span><i class="el-icon-view"></i> {{ viewCounts }}</span>
+            <span><i class="el-icon-chat-square"></i> {{ commentCounts }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </template>
 
 <script>
+import { formatTime } from "@/utils/time";
 
-</script>
-
-<script>
-  import { formatTime } from "@/utils/time";
-  import {getToken} from '@/request/token.js'
-  import $ from 'jquery'
-  export default {
-    name: 'ArticleItem',
-	index:'index',
-    props: {
-      id: String,
-      weight: Number,
-      title: String,
-      commentCounts: Number,
-      viewCounts: Number,//阅读数
-      summary: String,
-      author: String,
-      tags: Array,
-      createDate: String,
-	  cover: String,
-	  viewKeys:String,
-	  index:Number,
+export default {
+  name: 'ArticleItem',
+  props: {
+    id: String,
+    weight: Number,
+    title: String,
+    commentCounts: Number,
+    viewCounts: Number,
+    summary: String,
+    author: String,
+    tags: Array, // 接收标签数组
+    createDate: String,
+    cover: String,
+    index: Number,
+  },
+  methods: {
+    view(id) {
+      this.$router.push({ path: `/view/${id}` })
     },
-	mounted() {
-		
-		 this.loads();
-	},
-    data() {
-      return {
-		img:"http://cos.myo.pub/007.jpg",
-		lengths:0,
-		token:undefined,
-	  }
+    Imgview(index) {
+      // 随机二次元图，加 random 参数防止图片重复
+      return "https://www.loliapi.com/acg/?uuid=" + index
     },
-    methods: {
-		loads(){
-			this.ArticleShow()
-			
-			
-		},
-	  ArticleShow(){
-		  
-	  },
-      view(id) {
-        this.$router.push({path: `/view/${id}`})
-      },
-	  Imgview(index){
-		  return "http://cos.myo.pub/cover"+index+".jpg"
-	  },
-	  textalign(index){
-		  if(index%2!=0){
-			  return "right"
-		  }
-		  return "left"
-	  }
-    }
-
+    textalign(index) {
+      return index % 2 != 0 ? "right" : "left";
+    },
+    formatTime
   }
+}
 </script>
 
-<style>
-* {
-	box-sizing: border-box;
+<style scoped>
+/* 容器边距 */
+.comic-card-wrap {
+  padding: 0 10px;
+  margin-bottom: 30px;
 }
 
-.article-list-thumb-list{
-	max-width: 780px;
-	margin: 0 auto;
-	margin-bottom:40px;
-	
-}
-.article-list-thumb{
-	background-color: #ffffff;;
-	opacity: 1; 
-}
-
-.article-list-thumb-show{
-	opacity: 1; 
-	transition: all 0.8s ease !important;
+/* === 核心卡片设计 === */
+.comic-card {
+  position: relative;
+  display: flex;
+  height: 220px;
+  background: #fff;
+  border: 2px solid #333; /* 粗黑边框 */
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+  box-shadow: 6px 6px 0px rgba(50, 50, 50, 0.2); /* 实色阴影 */
 }
 
- .article-list-thumb-list:nth-of-type(1){
-	border-top: 1px solid #67C23A;
-}
-.post-list-thumb{
-	display: flex;
-	flex-direction: row
-}
-
-.post-thumb {
-	overflow: hidden;
-	flex: 55;
-	
+/* 悬停动效 */
+.comic-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 10px 10px 0px #FF7F50; /* 悬停变橙色 */
+  border-color: #333;
 }
 
-.post-thumb-content{
-	overflow: hidden;
-	flex: 45;
-}
-.lszy{
-	
-}
-.lszy:hover{
-	transform: scale(1.1);
+/* === 1. 图片区 === */
+.comic-img-box {
+  width: 45%;
+  position: relative;
+  border-right: 2px solid #333; /* 电脑端：右侧分割线 */
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.post-content-wrap{
-	padding-top: 20px;
-	width: 88%;
-	margin: 0 auto;
-	
-}
-.post-content{
-	
-}
-.main-food{
-	
+.comic-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-.float-content{
-	position: relative;
-	right: 0;
-	margin: 0;
-	margin-top: 10px;
-	z-index: 50;
-	color: rgba(0, 0, 0, .66);
-	transition: all 0.8s ease !important;
+.comic-card:hover .comic-cover { transform: scale(1.1); }
+
+.img-mask {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.mask-text {
+  color: #fff; border: 2px solid #fff; padding: 5px 15px;
+  font-weight: 900; letter-spacing: 2px; transform: rotate(-5deg);
+}
+.comic-card:hover .img-mask { opacity: 1; }
+
+/* === 2. 内容区 === */
+.comic-content {
+  flex: 1;
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background-image: radial-gradient(#ddd 1px, transparent 1px);
+  background-size: 8px 8px;
+  overflow: hidden;
 }
 
-.me-artile-date{
-		background-color: #00ff8226;
-	    font-size: 15px;
-	    width: max-content;
-	    padding: 4px 10px 4px 10px;
-	    border-radius: 6px;
-	    color: #67C23A;
-	    white-space: nowrap;
-	    font-weight: 420;
-	    transition: all 0.8s ease !important;
-}
-.me-article-title {
-	
-}
-.me-article-title h3{
-	text-overflow: ellipsis;
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 2;
-	overflow: hidden;
-	font-size: 20px;
-	word-wrap: break-word;
-	cursor:pointer ;
-}
-.me-artile-summary{
-	display: -webkit-box;
-	-webkit-line-clamp: 3;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
+.bg-number {
+  position: absolute; right: 10px; top: -10px;
+  font-size: 5rem; font-weight: 900; color: rgba(0,0,0,0.04);
+  font-family: Impact, sans-serif; pointer-events: none;
 }
 
-
-.focus-img{
-	height: 300px;
-	position: relative;
-	display: block;
-	background-repeat: no-repeat;
-	background-size: cover;
-	overflow: hidden;
+.meta-header { margin-bottom: 5px; z-index: 1; }
+.date-tag {
+  background: #333; color: #fff; padding: 2px 6px;
+  font-size: 12px; border-radius: 4px; font-weight: bold;
 }
 
-.lszy{
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	transition: all .6s;
+.comic-title {
+  margin: 5px 0;
+  font-size: 1.3rem;
+  color: #333;
+  font-weight: 800;
+  z-index: 1;
+  transition: color 0.3s;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.hashtag { color: #FF7F50; margin-right: 5px; }
+.comic-card:hover .comic-title { color: #FF7F50; }
+
+.comic-summary {
+  font-size: 13px; color: #666; line-height: 1.6;
+  height: 42px; overflow: hidden;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  margin-bottom: auto; z-index: 1;
 }
 
+/* === 底部栏 (Tag + 统计) === */
+.comic-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1;
+  border-top: 2px dashed #ccc; /* 虚线分割 */
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+/* ⭐ 标签样式自定义 ⭐ */
+.tags-group {
+  display: flex;
+  flex-wrap: wrap; /* 标签多了自动换行 */
+  gap: 5px; /* 标签间距 */
+  max-width: 70%; /* 防止挤压统计数据 */
+}
+
+/* 强制覆盖 el-tag 样式使其符合漫画风 */
+.comic-tag {
+  border-radius: 0 !important; /* 方形标签 */
+  border: 1px solid #333 !important;
+  color: #333 !important;
+  background: #fff !important;
+  font-weight: bold;
+}
+
+.stats-group {
+  font-size: 12px; color: #888; font-weight: 600;
+  flex-shrink: 0;
+}
+.stats-group span { margin-left: 10px; }
+
+/* === 电脑端：左右反转 (Zigzag) === */
+.is-reverse { flex-direction: row-reverse; }
+.is-reverse .comic-img-box {
+  border-right: none;
+  border-left: 2px solid #333; /* 分割线变到左边 */
+}
+.is-reverse .bg-number { right: auto; left: 10px; }
 
 
-@media only screen and (max-width:800px) {
-	.post-thumb{
-		
-		
-	}
-	.post-thumb-content{
-		min-height: 220px;
-		
-	}
+/* =========================================
+   📱 移动端响应式核心 (Max-width: 768px)
+   ========================================= */
+@media screen and (max-width: 768px) {
+  .comic-card-wrap {
+    padding: 0;
+  }
 
-	.post-list-thumb{
-		flex-direction: column!important;
-	}
-	.post-content-wrap {
-	    width: 95%;
-		text-align: left!important;
-	}
-	.focus-img {
-		height: 210px;
-	}
-	
-	
-	
+  /* 1. 强制变成上下结构 */
+  .comic-card,
+  .comic-card.is-reverse {
+    flex-direction: column !important;
+    height: auto; /* 高度自适应 */
+  }
+
+  /* 2. 图片在上面 */
+  .comic-img-box {
+    width: 100%;
+    height: 160px; /* 图片高度 */
+    border-right: none;
+    border-left: none;
+    /* ⭐ 核心：这就是你要的分割线 ⭐ */
+    border-bottom: 2px solid #333 !important;
+  }
+
+  /* 3. 清楚反转带来的副作用 */
+  .is-reverse .comic-img-box {
+    border-left: none;
+  }
+
+  /* 4. 内容区调整 */
+  .comic-content {
+    padding: 12px 15px;
+  }
+
+  .comic-title { font-size: 1.1rem; }
+  .bg-number { font-size: 4rem; top: 0; }
+
+  /* 5. 手机上标签只显示一行，多了隐藏 */
+  .tags-group {
+    max-width: 60%;
+    height: 24px;
+    overflow: hidden;
+  }
 }
 </style>

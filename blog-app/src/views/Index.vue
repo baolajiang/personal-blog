@@ -1,24 +1,24 @@
 <template>
-	
+
 <div v-title :data-title="title" >
 	<!-- 首页布局 -->
 	<div class="container">
-		
+
 		<div class="row">
 			 <div class="content-left">
-			 </div> 
+			 </div>
 			  <div class="content-main">
 				    <main-title></main-title>
 					<article-scroll-page v-bind="article"></article-scroll-page>
 			  </div>
-				
+
 			  <div class="content-right">
 			  <div class="card-list">
-				
+
 				<card-me class="me-area"></card-me>
-				<card-message cardHeader="站点信息" :webinfo="webinfo"></card-message>
-				<card-clock class="card_clock"></card-clock>
-				
+
+
+
 				<card-tag :tags="hotTags"></card-tag>
 
 				<card-article cardHeader="最热" :articles="hotArticles"></card-article>
@@ -42,10 +42,9 @@
   import cardTag from '@/components/card/cardTag'
   import ArticleScrollPage from '@/views/common/ArticleScrollPage'
   import headertop from '@/components/page'
-  import cardClock from '@/components/card/cardClock'
-  import CardMessage from '@/components/card/CardMessage'
 
- 
+
+
   import {getArticles, getHotArtices, getNewArtices} from '@/api/article'
   import {getWebinfo} from '@/api/utils'
   import {getHotTags} from '@/api/tag'
@@ -133,10 +132,10 @@
       'card-tag': cardTag,
       ArticleScrollPage,
       CardTechnology,
-	  CardMessage,
+
 	  mainTitle,
 	  	headertop,
-		'card-clock':cardClock,
+
     }
   }
 </script>
@@ -150,32 +149,32 @@
 		padding-top: 20px;
 		padding-right: 15px;
 		padding-left: 15px;
-		
+
 		margin-right: auto;
 		margin-left: auto;
 	}
 	.row{
 		display: flex;
-		
+
 		margin-right: -15px;
 		margin-left: -15px;
 	}
 
 	.content-main{
-		
-		
+
+
 		min-height: 1px;
 		padding-right: 15px;
 		padding-left: 15px;
 	}
 	.content-right{
-		
-		
+
+
 		min-height: 1px;
 		padding-right: 15px;
 		padding-left: 15px;
 	}
-	
+
 	.card-list{
 		max-width: 300px;
 	}
@@ -190,11 +189,11 @@
 		.row{
 			flex-direction: column;
 		}
-		
-			
-	}
-	
 
-	
+
+	}
+
+
+
 
 </style>

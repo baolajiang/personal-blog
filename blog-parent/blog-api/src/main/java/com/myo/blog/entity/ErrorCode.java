@@ -8,7 +8,13 @@ public enum  ErrorCode {
     ACCOUNT_EXIST(10004,"账号已存在"),
     NO_PERMISSION(70001,"无访问权限"),
     SESSION_TIME_OUT(90001,"会话超时"),
-    NO_LOGIN(90002,"未登录"),;
+    NO_LOGIN(90002,"未登录"),
+    // 新增错误码
+    SYSTEM_ERROR(500, "系统异常"),
+    DATA_NOT_FOUND(10005, "数据不存在"),
+    OPERATION_FAILED(10006, "操作失败"),
+    FILE_UPLOAD_FAILED(10007, "文件上传失败"),
+    NETWORK_ERROR(10008, "网络异常");
 
     private int code;//错误代码
     private String msg;//错误提示

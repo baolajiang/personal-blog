@@ -9,11 +9,11 @@
 					<div class="meta-title">关于 | About</div>
 					<div class="markdown-body ">
 						<p>Hi，我是{{this.$myName}}，这里是我的主页！</p>
-						
+
 						<p>很荣幸您能访问我的网站！</p>
-						
+
 						<p>这里收集了个人认为日常实用的代码， 个人所学知识的复习资料， 网上收集的实用代码以及个人感兴趣的各种知识记录。 以下为我给自己设立的要求：</p>
-						
+
 						<p>1.记录日常复习中带有重复利用价值的代码及介绍</p>
 						<p>2.记录日常突发奇想的算法及想法</p>
 						<p>3.记录自学过程中的代码及介绍</p>
@@ -25,13 +25,13 @@
 						<p>本站创立于2022年4月</p>
 						<p>当前网站只有首页做了响应式,毕竟前端样式也不是咱们后端工程师专门弄得,自学了一点皮毛,弄得样式可能不太好看后面可能会改QAQ</p>
 						<div class="About-title">Information About Me / 关于我的信息</div>
-						<p>昵称： 糖萌希</p>
-						<p>目前职业： java开发工程师</p>
+						<p>昵称： {{this.$myName}}</p>
+						<p>目前职业：  码农</p>
 						<p>爱好： 看书、 玩游戏、 看动漫、 躺着、 敲代码</p>
 						<div class="Contact-title">Contact / 联系方式</div>
 						<p>QQ: 2693398551</p>
 						<p>Email: liange2693398551@gmail.com</p>
-						
+
 					</div>
 				</div>
 				<div class="popcontainer"></div>
@@ -47,7 +47,7 @@
 	export default {
 	  name: 'BlogResume',
 	  }
-	
+
 </script>
 
 
@@ -68,9 +68,9 @@
 	border-radius: 8px;
 	}
 .site-main{
-	
+
 	padding: 30px ;
-	
+
 }
 .moe-mashiro{
 	width: 100%;
@@ -86,7 +86,7 @@
 .Contact-title{
 	text-align: center;
 	font-size: 1.5rem;
-	padding-bottom: 1rem;	
+	padding-bottom: 1rem;
 }
 
 
@@ -95,7 +95,7 @@
 
 
 
-  
+
 
 
 

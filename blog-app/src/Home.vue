@@ -7,9 +7,9 @@
 		<div class="layou-content">
 			<router-view/>
 		</div>
-		
-		<base-footer v-if="this.$router.currentRoute.path=='/'"></base-footer> 
-		
+
+		<base-footer v-if="this.$router.currentRoute.path=='/'"></base-footer>
+
   </div>
 </template>
 
@@ -17,7 +17,7 @@
 
 
 <script>
-	
+
 import BaseFooter from '@/components/BaseFooter'
 import BaseHeader from '@/views/BaseHeader'
 import headertop from '@/components/page'
@@ -36,10 +36,10 @@ export default {
   	'base-footer':BaseFooter,
 	headertop,
 
-	 
+
   },
   mounted() {
-  	
+
   },
   beforeRouteEnter (to, from, next){
   	 next(vm => {
@@ -61,7 +61,7 @@ export default {
 				//关
 				$('.my-container').addClass('dark-theme');
 			}else{
-				
+
 				$('.my-container').removeClass('dark-theme');
 			}
 		}
@@ -70,24 +70,24 @@ export default {
 </script>
 
 <style>
-	
-	
-
-	
-	
-	
 
 
 
-	
+
+
+
+
+
+
+
 body{
-	background: url("http://cos.myo.pub/BgImage/bg1.jpg");
-	background-repeat :no-repeat; 
+	background: url("https://www.loliapi.com/acg/");
+	background-repeat :no-repeat;
 	background-position: center;
 	background-size:cover;
 	background-attachment: fixed;
-	
-	
+
+
 }
 :root {
   --main-bg: brown;
@@ -104,8 +104,8 @@ html{
 }
 
 html,body{
-	scroll-behavior: smooth; /*平滑的过渡 */ 
-	
+	scroll-behavior: smooth; /*平滑的过渡 */
+
 }
 
 
@@ -113,7 +113,7 @@ html,body{
 /* 光亮主题 */
 .light-theme{
 	--myo-bg:rgba(255, 255, 255, .5);
-	
+
 }
 /* 暗黑主题 */
 .dark-theme{
@@ -127,7 +127,7 @@ html,body{
 		.my-container{
 			overflow: hidden;
 		}
-	} 
+	}
 
 
 

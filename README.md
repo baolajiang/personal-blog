@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🚀 Personal Blog 系统</h1>
-  <p>基于 Spring Boot 2.7 & Vue 3 的全栈博客解决方案</p>
+  <p>基于 Spring Boot 2.7 & Vue 2 的全栈博客解决方案</p>
   <br />
 </div>
 
@@ -48,3 +48,10 @@
 ## 💡 开发小贴士
 * <b>前后端联调：</b> 后端已开启 <b>CORS 跨域支持</b>，前端可直接调用接口。
 * <b>结构建议：</b> 保持 <code>blog-parent</code> 为根目录，方便统一提交 Git 仓库。
+<div align="center">
+  <h1>🚀 Personal Blog 系统</h1>
+  <img src="https://count.getloli.com/get/@2693398551-personal-blog?theme=moebooru" alt="Moe Counter" />
+
+  <p>基于 Spring Boot 2.7 & Vue 2 的全栈博客解决方案</p>
+  <br />
+</div>

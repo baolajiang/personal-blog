@@ -1,15 +1,8 @@
 <template>
 	<div class="container">
 		<div id="carousel">
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
-			<figure><img src="http://cos.myo.pub/8b650b48-f74c-4da1-b71b-ce68b7be2239.jpg" alt=""></figure>
+			<figure><img src="https://www.loliapi.com/acg/" alt=""></figure>
+
 		</div>
 	</div>
 </template>
@@ -23,7 +16,7 @@
 
 <style scoped>
 	@import url(https://fonts.googleapis.com/css?family=Anaheim);
-	
+
 	h1{
 		display: table;
 		margin: 5% auto 0;
@@ -70,7 +63,7 @@
 	#carousel figure:nth-child(7) { transform: rotateY(240deg) translateZ(288px);}
 	#carousel figure:nth-child(8) { transform: rotateY(280deg) translateZ(288px);}
 	#carousel figure:nth-child(9) { transform: rotateY(320deg) translateZ(288px);}
-	
+
 	#carousel img{
 		-webkit-filter: grayscale(0);/* 1变灰 0正常 */
 		cursor: pointer;
@@ -82,7 +75,7 @@
 		-webkit-filter: grayscale(0);
 	  transform: scale(1.2,1.2);
 	}
-	
+
 	@keyframes rotation{
 		from{
 			transform: rotateY(0deg);

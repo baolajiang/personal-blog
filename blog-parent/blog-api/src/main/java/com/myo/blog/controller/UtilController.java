@@ -70,7 +70,6 @@ public class UtilController {
     //二维码
     @PostMapping("/create")
     public void contextLoads(HttpServletResponse response,@RequestBody QRcodeParar qr) throws IOException {
-;
 
         int type=qr.getType();
         if(type==1){

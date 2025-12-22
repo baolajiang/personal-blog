@@ -90,7 +90,7 @@
           summary: '',
           category: '',
           tags: [],
-		  cover:"http://cos.myo.pub/cover/72e934d0-df25-48dd-817e-429144bca9ab.png",
+		  cover:"https://www.loliapi.com/acg/",
           editor: {
             value: '',
             ref: '',//保存mavonEditor实例  实际不该这样
