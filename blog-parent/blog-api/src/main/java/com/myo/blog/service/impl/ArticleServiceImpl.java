@@ -63,10 +63,18 @@ public class ArticleServiceImpl implements ArticleService {
         );
 
         List<Article> records = articleIPage.getRecords();
+        // 将数据库实体转换为前端视图对象 (VO)
+        List<ArticleVo> articleVoList = copyList(records, true, true, false, false, isToken);
 
+        // MyBatis Plus 自动查询的总记录数
+        long total = articleIPage.getTotal();
 
+        //封装到 Map 中返回
+        Map<String, Object> resultData = new HashMap<>();
+        resultData.put("articles", articleVoList); // 文章列表
+        resultData.put("total", total);            // 总条数
 
-        return Result.success(copyList(records,true,true,false,false,isToken));
+        return Result.success(resultData);
     }
     //查询一个多少文章数量
     public Result listArticleCount(String token){
@@ -156,23 +164,56 @@ public class ArticleServiceImpl implements ArticleService {
     @Autowired
     private ThreadService threadService;
 
+
     @Override
-    public Result findArticleById(Long articleId) {
-        /**
-         * 1. 根据id查询 文章信息
-         * 2. 根据bodyId和categoryid 去做关联查询
-         */
-
-
-
+    public Result findArticleById(Long articleId, String token) {
         Article article = this.articleMapper.selectById(articleId);
+        if (article == null) {
+            return Result.fail(404, "文章不存在");
+        }
 
-        ArticleVo articleVo = copy(article, true, true,true,true);
-        //查看完文章了，新增阅读数，有没有问题呢？
-        //查看完文章之后，本应该直接返回数据了，这时候做了一个更新操作，更新时加写锁，阻塞其他的读操作，性能就会比较低
-        // 更新 增加了此次接口的 耗时 如果一旦更新出问题，不能影响 查看文章的操作
-        //线程池  可以把更新操作 扔到线程池中去执行，和主线程就不相关了
-        threadService.updateArticleViewCount(articleMapper,article);
+        boolean isToken = !"undefined".equals(token);
+
+        // 1. 隐藏文章
+        if (!isToken && article.getViewKeys() == 2) {
+            return Result.fail(403, "该文章不存在或您无权访问");
+        }
+
+        // 2. 转换 VO
+        ArticleVo articleVo = copy(article, true, true, true, true);
+
+        // 3. 加密脱敏
+        if (!isToken && article.getViewKeys() == 1) {
+
+            // 标题 & 简介
+            int titleLen = articleVo.getTitle() != null ? articleVo.getTitle().length() : 5;
+            articleVo.setTitle(ArticleUtils.keys(titleLen));
+
+            int summaryLen = articleVo.getSummary() != null ? articleVo.getSummary().length() : 20;
+            articleVo.setSummary(ArticleUtils.keys(summaryLen));
+
+            // 正文
+            if (articleVo.getBody() != null && articleVo.getBody().getContent() != null) {
+                int bodyLen = articleVo.getBody().getContent().length();
+                int maskLen = Math.min(bodyLen, 800);
+                articleVo.getBody().setContent(ArticleUtils.keys(maskLen));
+            }
+
+            // --- 【修改点】标签统一为一个 "******" ---
+            List<TagVo> maskTagList = new ArrayList<>();
+            TagVo maskTag = new TagVo();
+            maskTag.setTagName("******");
+            maskTagList.add(maskTag);
+
+            articleVo.setTags(maskTagList);
+
+            // --- 【新增】分类加密 ---
+            if (articleVo.getCategory() != null) {
+                articleVo.getCategory().setCategoryName("******");
+            }
+        }
+
+        threadService.updateArticleViewCount(articleMapper, article);
         return Result.success(articleVo);
     }
 
@@ -276,26 +317,46 @@ public class ArticleServiceImpl implements ArticleService {
         }
         return articleVoList;
     }
-    private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor, boolean isBody,boolean isCategory,boolean isToken) {
-        List<ArticleVo> articleVoList = new ArrayList<>();
-        for (Article record : records) {
-            System.out.println("record:"+record);
-            System.out.println("是否登录:"+isToken);
-            /*if(record.getViewKeys()==1&&isToken==false){
-                int titleLength=record.getTitle().length();
-                int summaryLength=record.getSummary().length();
-                String title=ArticleUtils.keys(titleLength);
-                String summary=ArticleUtils.keys(summaryLength);
-                //给标题马赛克■
-                record.setTitle(title);
-                //给文章简介马赛克■
-                record.setSummary(summary);
-                //
-                record.setCategoryId(Long.parseLong(0+""));
-            }*/
-            System.out.println("record2:"+record);
-            articleVoList.add(copy(record,isTag,isAuthor,isBody,isCategory));
 
+    private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor, boolean isBody, boolean isCategory, boolean isToken) {
+        List<ArticleVo> articleVoList = new ArrayList<>();
+
+        for (Article record : records) {
+            // 1. 隐藏文章 (viewKeys=2) -> 未登录直接跳过
+            if (!isToken && record.getViewKeys() == 2) {
+                continue;
+            }
+            // 2. 转换数据
+            ArticleVo articleVo = copy(record, isTag, isAuthor, isBody, isCategory);
+            // 3. 加密文章 (viewKeys=1) -> 未登录进行脱敏
+            if (!isToken && record.getViewKeys() == 1) {
+
+                // --- 标题和简介乱码 (保持不变) ---
+                int titleLen = articleVo.getTitle() != null ? articleVo.getTitle().length() : 5;
+                articleVo.setTitle(ArticleUtils.keys(titleLen));
+
+                int summaryLen = articleVo.getSummary() != null ? articleVo.getSummary().length() : 10;
+                articleVo.setSummary(ArticleUtils.keys(summaryLen));
+
+                // --- 【修改点】标签统一为一个 "******" ---
+                // 不管原来有几个标签，这里创建一个新的列表，只放一个伪造的标签
+                List<TagVo> maskTagList = new ArrayList<>();
+                TagVo maskTag = new TagVo();
+                maskTag.setTagName("******");
+                // maskTag.setId("-1"); // 如果前端报错key重复，可以给个假ID
+                maskTagList.add(maskTag);
+
+                // 直接替换掉原来的标签列表
+                articleVo.setTags(maskTagList);
+
+                // 如果当前 ArticleVo 里有分类信息，就把名字改掉
+                if (articleVo.getCategory() != null) {
+                    articleVo.getCategory().setCategoryName("******");
+                    // articleVo.getCategory().setId("-1"); // 可选：防止点击跳转
+                }
+            }
+
+            articleVoList.add(articleVo);
         }
         return articleVoList;
     }

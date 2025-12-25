@@ -31,13 +31,22 @@ export default new Vuex.Store({
     }
   },
   actions: {
-    login({commit}, user) {
+// store/index.js
+    login({commit, dispatch}, user) { // 1. 参数里加上 dispatch
       return new Promise((resolve, reject) => {
         login(user.account, user.password).then(data => {
           if(data.success){
             commit('SET_TOKEN', data.data)
             setToken(data.data)
-            resolve()
+
+            // 2. --- 新增：登录成功后，立刻获取用户信息 ---
+            dispatch('getUserInfo').then(() => {
+              resolve()
+            }).catch(() => {
+              // 即使获取用户信息失败，也算登录成功，Resolve 出去让页面跳转
+              resolve()
+            })
+
           }else{
             reject(data.msg)
           }
@@ -48,7 +57,6 @@ export default new Vuex.Store({
     },
     // 获取用户信息
     getUserInfo({commit, state}) {
-
       let that = this
       return new Promise((resolve, reject) => {
         getUserInfo(state.token).then(data => {

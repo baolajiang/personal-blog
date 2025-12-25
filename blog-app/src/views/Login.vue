@@ -53,7 +53,12 @@
           if (valid) {
 
             that.$store.dispatch('login', that.userForm).then(() => {
+              // 如果有历史记录，则返回上一页；如果历史记录长度小于等于1（说明是直接打开的），则去首页
+              if (window.history.length > 1) {
                 that.$router.go(-1)
+              } else {
+                that.$router.push({path: '/'})
+              }
             }).catch((error) => {
               if (error !== 'error') {
                 that.$message({message: error, type: 'error', showClose: true});

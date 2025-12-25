@@ -32,7 +32,6 @@ public class ArticleController {
     @LogAnnotation(module="文章",operator="获取文章列表")
     @Cache(name = "listArticle" ,expire = 1 * 5 * 1000)
     public Result listArticle(@RequestBody PageParams pageParams,@RequestHeader("Authorization") String token){
-//        int i = 10/0;
     //获取到Authorization中的token，若token为null则表示没有登录
 
         return articleService.listArticle(pageParams,token);
@@ -83,11 +82,17 @@ public class ArticleController {
 
     @PostMapping("view/{id}")
     public Result findArticleById(@PathVariable("id") Long articleId,@RequestHeader("Authorization") String token){
-        System.out.println("token0："+token);
-        return articleService.findArticleById(articleId);
+        // 将 token 传递给 service 层，用于权限验证
+        return articleService.findArticleById(articleId,token);
     }
     //接口url：/articles/publish
     //
+
+    /**
+     * 文章发布服务
+     * @param articleParam
+     * @return
+     */
     //请求方式：POST
     @PostMapping("publish")
     public Result publish(@RequestBody ArticleParam articleParam){

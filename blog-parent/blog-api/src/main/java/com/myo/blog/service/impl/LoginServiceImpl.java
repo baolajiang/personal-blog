@@ -59,46 +59,70 @@ public class LoginServiceImpl implements LoginService {
 
         String token = JWTUtils.createToken(sysUser.getId());
 
-        //修改最后登录的ip地址
-            update(account,password);
-        //
-        redisTemplate.opsForValue().set("TOKEN_"+token, JSON.toJSONString(sysUser),1, TimeUnit.DAYS);
+        //更新最后登录IP
+            update(sysUser.getId());
+
+        //同时存储两份数据
+        // 1. 正向索引：通过 Token 找 用户信息 (用于登录验证)
+        redisTemplate.opsForValue().set("TOKEN_"+token, JSON.toJSONString(sysUser),3, TimeUnit.DAYS);
+        // 2. 反向索引：通过 用户ID 找 Token (用于退出登录)
+        redisTemplate.opsForValue().set("USER_TOKEN_" + sysUser.getId(), token, 3, TimeUnit.DAYS);
         return Result.success(token);
     }
 
-    public void update(String account,String password){
-        //获取request 设置IP地址
+    // 建议直接传 id 进来更新
+    public void update(Long userId){
+        // 获取当前请求的 IP 地址
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip= IpUtils.getIpAddr(request);
-        LambdaUpdateWrapper<SysUser> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        lambdaUpdateWrapper.eq(SysUser::getAccount,account )
-                .eq(SysUser::getPassword,password)
-                .set(SysUser::getLastIpaddr, ip);
-        this.sysUserService.update(lambdaUpdateWrapper);
+        // 创建一个只包含 ID 和需要更新字段的用户对象
+        SysUser user = new SysUser();
+        user.setId(userId);
+        user.setLastIpaddr(ip);// 设置最后登录 IP
+        user.setLastLogin(System.currentTimeMillis()); // 通常也会更新登录时间
+        // 调用 Service 层去更新数据库
+        this.sysUserService.updateById(user);
     }
 
     @Override
     public SysUser checkToken(String token) {
         if (StringUtils.isBlank(token)){
-            return null;
+            return null;// Redis 中没有，token 无效
         }
+        //校验 JWT 格式和签名 (JWTUtils.checkToken 即使过期时间很长，也会校验签名是否被篡改)
         Map<String, Object> stringObjectMap = JWTUtils.checkToken(token);
         if (stringObjectMap == null){
             return null;
         }
+        // 【核心控制】：去 Redis 查。如果 Redis 里没了，就代表过期/退出了。
         String userJson = redisTemplate.opsForValue().get("TOKEN_" + token);
         if (StringUtils.isBlank(userJson)){
-            return null;
+            return null;// Redis 没数据 = Token 失效
         }
         SysUser sysUser = JSON.parseObject(userJson, SysUser.class);
+        // 续期 Redis（活跃用户保持登录）
+        redisTemplate.expire("TOKEN_" + token, 3, TimeUnit.DAYS);
+        redisTemplate.expire("USER_TOKEN_" + sysUser.getId(), 3, TimeUnit.DAYS);
         return sysUser;
     }
 
     @Override
     public Result logout(String token) {
-        redisTemplate.delete("TOKEN_"+token);
+        // 1. 先查一下这个 Token 是谁的 (为了删反向索引)
+        // 如果你的 checkToken 逻辑里已经做了判空，这里可以直接用
+        SysUser sysUser = checkToken(token);
+
+        // 2. 删除 Token Key
+        redisTemplate.delete("TOKEN_" + token);
+
+        // 3. 如果能找到用户，把他的反向索引也删了
+        if (sysUser != null) {
+            redisTemplate.delete("USER_TOKEN_" + sysUser.getId());
+        }
+
         return Result.success(null);
     }
+
 
     @Override
     public Result register(LoginParam loginParam) {
@@ -146,8 +170,26 @@ public class LoginServiceImpl implements LoginService {
 
         String token = JWTUtils.createToken(sysUser.getId());
 
-        redisTemplate.opsForValue().set("TOKEN_"+token, JSON.toJSONString(sysUser),1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("TOKEN_"+token, JSON.toJSONString(sysUser),3, TimeUnit.DAYS);
         return Result.success(token);
+    }
+
+    @Override
+    public Result kick(Long userId) {
+        // 1. 先根据 用户ID 找到 Token
+        String token = redisTemplate.opsForValue().get("USER_TOKEN_" + userId);
+
+        if (StringUtils.isBlank(token)) {
+            return Result.fail(ErrorCode.NO_LOGIN.getCode(), "该用户未登录或已下线");
+        }
+
+        // 2. 删除 正向索引 (TOKEN_xxxxx) -> 这一步真正让 Token 失效
+        redisTemplate.delete("TOKEN_" + token);
+
+        // 3. 删除 反向索引 (USER_TOKEN_xxxxx) -> 清理痕迹
+        redisTemplate.delete("USER_TOKEN_" + userId);
+
+        return Result.success("用户已强制下线");
     }
 
 }

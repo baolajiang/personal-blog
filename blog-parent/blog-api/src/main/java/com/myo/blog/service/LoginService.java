@@ -27,4 +27,10 @@ public interface LoginService {
      * @return
      */
     Result register(LoginParam loginParam);
+     /**
+     * 强制退出登录（踢人下线）
+     * @param userId
+     * @return
+     */
+    Result kick(Long userId);
 }

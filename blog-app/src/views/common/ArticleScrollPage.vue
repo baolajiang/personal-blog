@@ -1,145 +1,179 @@
 <template>
-  <scroll-page :loading="loading" :offset="offset" :no-data="noData" v-on:load="load">
-    <article-item v-for="(a,index) in articles" :key="a.id" v-bind="a" :index="index"></article-item>
-  </scroll-page>
+  <div class="article-list-container">
+    <article-item
+      v-for="(a, index) in articles"
+      :key="a.id"
+      v-bind="a"
+      :index="index">
+    </article-item>
+
+    <div v-if="noData" class="no-data">
+      <el-empty description="这里空空如也..."></el-empty>
+    </div>
+
+    <div class="pagination-box" v-if="!loading && !noData">
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :current-page.sync="innerPage.pageNumber"
+        :page-size="innerPage.pageSize"
+        :total="total"
+        @current-change="handlePageChange">
+      </el-pagination>
+    </div>
+
+    <div v-if="loading" class="loading-box">
+      <i class="el-icon-loading"></i> 加载中...
+    </div>
+  </div>
 </template>
+
 <script>
-  import ArticleItem from '@/components/article/ArticleItem'
-  import ScrollPage from '@/components/scrollpage'
-  import {getArticles} from '@/api/article'
-  export default {
-    name: "ArticleScrollPage",
-    props: {
-      offset: {
-        type: Number,
-        default: 100
-      },
-      page: {
-        type: Object,
-        default() {
-          return {}
-        }
-      },
-      query: {
-        type: Object,
-        default() {
-          return {}
-        }
+import ArticleItem from '@/components/article/ArticleItem'
+import {getArticles} from '@/api/article'
+
+export default {
+  name: "ArticleScrollPage",
+  components: {
+    'article-item': ArticleItem
+  },
+  props: {
+    offset: {
+      type: Number,
+      default: 100
+    },
+    page: {
+      type: Object,
+      default() {
+        return {}
       }
     },
-    watch: {
-      'query': {
-        handler() {
-          this.noData = false
-          this.articles = []
-          this.innerPage.pageNumber = 1
-          this.getArticles()
-        },
-        deep: true
-      },
-      'page': {
-        handler() {
-          this.noData = false
-          this.articles = []
-          this.innerPage = this.page
-          this.getArticles()
-        },
-        deep: true
+    query: {
+      type: Object,
+      default() {
+        return {}
       }
+    }
+  },
+  data() {
+    return {
+      loading: false,
+      noData: false,
+      innerPage: {
+        pageSize: 5,
+        pageNumber: 1,
+        name: 'a.createDate',
+        sort: 'desc'
+      },
+      total: 0, // 用于存放文章总数
+      articles: []
+    }
+  },
+  watch: {
+    'query': {
+      handler() {
+        this.resetAndLoad()
+      },
+      deep: true
     },
-    created() {
+    'page': {
+      handler() {
+        this.innerPage = { ...this.innerPage, ...this.page }
+        this.resetAndLoad()
+      },
+      deep: true
+    }
+  },
+  created() {
+    this.getArticles()
+  },
+  methods: {
+    // 重置页码并重新加载
+    resetAndLoad() {
+      this.noData = false
+      this.articles = []
+      this.innerPage.pageNumber = 1
       this.getArticles()
-	
     },
-	mounted() {
-		
-		   /* let _this = this;
-		    window.onscroll = function(){
-		      //变量scrollTop是滚动条滚动时，距离顶部的距离
-		      var scrollTop = document.documentElement.scrollTop||document.body.scrollTop;
-		      //变量windowHeight是可视区的高度
-		      var windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
-		      //变量scrollHeight是滚动条的总高度
-		      var scrollHeight = document.documentElement.scrollHeight||document.body.scrollHeight;
-		        //滚动条到底部的条件
-		        if(scrollTop+windowHeight == scrollHeight){
-		        //到了这个就可以进行业务逻辑加载后台数据了
-		          _this.isBottom = true;
-		          console.log("到了底部");
-		        }else{
-		          _this.isBottom = false;
-		        } 
-		      } */
-	},
-    data() {
-      return {
-        loading: false,
-        noData: false,
-        innerPage: {
-          pageSize: 5,
-          pageNumber: 1,
-          name: 'a.createDate',
-          sort: 'desc'
-        },
-        articles: []
-      }
+
+    // 处理页码改变事件
+    handlePageChange(val) {
+      this.innerPage.pageNumber = val
+      this.getArticles()
+      // 回到顶部，提升体验
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     },
-    methods: {
 
-      load() {
-        this.getArticles()
-      },
-      view(id) {
-        this.$router.push({path: `/view/${id}`})
-      },
-      getArticles() {
-        let that = this
-        that.loading = true
-
-        getArticles(that.query, that.innerPage,this.$store.state.token).then(data => {
-          let newArticles = data.data
-		 
-          if (newArticles && newArticles.length > 0) {
-            that.innerPage.pageNumber += 1
-			for(var i=0;i<newArticles.length;i++){
-				let t=newArticles[i].summary.slice(0, 1)=='■';
-				if(t){
-					let NewSummary='该文章以加密请登录后才看';
-					newArticles[i].summary=NewSummary;
-				}
-			}
-			
-			
-            that.articles = that.articles.concat(newArticles)
-			
-			
-          } else {
-            that.noData = true
-          }
-
-        }).catch(error => {
-          if (error !== 'error') {
-            that.$message({type: 'error', message: '文章加载失败!', showClose: true})
-          }
-        }).finally(() => {
-          that.loading = false
-        })
-      }
+    view(id) {
+      this.$router.push({ path: `/view/${id}` })
     },
-    components: {
-      'article-item': ArticleItem,
-      'scroll-page': ScrollPage
+
+    getArticles() {
+      let that = this
+      that.loading = true
+
+      getArticles(that.query, that.innerPage, this.$store.state.token).then(data => {
+
+        let responseData = data.data;
+        let newArticles = []
+
+        // 处理数据结构 (兼容 List 和 Map)
+        if (responseData && responseData.articles) {
+          newArticles = responseData.articles
+          that.total = responseData.total
+        } else {
+          newArticles = responseData
+          that.total = 0
+        }
+
+        if (newArticles && newArticles.length > 0) {
+          // 因为后端已经处理成了乱码，前端只需要直接显示即可
+          that.articles = newArticles
+          that.noData = false
+
+        } else {
+          that.articles = []
+          that.noData = true
+        }
+
+      }).catch(error => {
+        if (error !== 'error') {
+          that.$message({ type: 'error', message: '文章加载失败!', showClose: true })
+        }
+      }).finally(() => {
+        that.loading = false
+      })
     }
   }
+}
 </script>
 
 <style scoped>
-  .el-card {
-    border-radius: 0;
-  }
+.el-card {
+  border-radius: 0;
+}
 
-  .el-card:not(:first-child) {
-    margin-top: 10px;
-  }
-  
+.el-card:not(:first-child) {
+  margin-top: 10px;
+}
+
+.pagination-box {
+  margin: 20px 0;
+  text-align: center;
+  background-color: #fff; /* 给个背景色或者透明看你喜好 */
+  padding: 10px;
+}
+
+.loading-box {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.no-data {
+  margin-top: 20px;
+  background: #fff;
+  padding: 20px;
+  text-align: center;
+}
 </style>

@@ -68,4 +68,10 @@ public interface SysUserService {
      * @param lambdaUpdateWrapper
      */
     int update(LambdaUpdateWrapper<SysUser> lambdaUpdateWrapper);
+
+    /**
+     * 根据ID更新用户信息
+     * @param sysUser
+     */
+    void updateById(SysUser sysUser);
 }

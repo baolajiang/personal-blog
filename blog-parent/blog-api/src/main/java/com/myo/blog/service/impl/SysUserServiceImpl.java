@@ -209,7 +209,17 @@ public class SysUserServiceImpl implements SysUserService {
     public int update(LambdaUpdateWrapper<SysUser> lambdaUpdateWrapper){
 
         return this.sysUserMapper.update(null,lambdaUpdateWrapper);
-    };
+    }
+
+    @Override
+    public void updateById(SysUser sysUser) {
+        // 根据用户ID更新用户信息
+        // 使用MyBatis-Plus的updateById方法，根据实体类主键进行更新
+        // 注意：sysUser对象必须包含有效的ID字段值
+        this.sysUserMapper.updateById(sysUser);
+    }
+
+    ;
 
 
 }

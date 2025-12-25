@@ -29,10 +29,13 @@
     <select id="listArticle" resultMap="articleMap">
         select * from myo_article
         <where>
-            1 = 1  and `view_keys`=0 or `view_keys`=1
+            (
+            `view_keys`=0 or `view_keys`=1
             <if test="isToken == true">
                 or `view_keys`=2
             </if>
+            )
+
             <if test="categoryId != null">
                 and category_id=#{categoryId}
             </if>
@@ -40,18 +43,30 @@
                 and id in (select article_id from myo_article_tag where tag_id=#{tagId})
             </if>
             <if test="year != null and year.length>0 and month != null and month.length>0">
-               and (FROM_UNIXTIME(create_date/1000,'%Y') =#{year} and FROM_UNIXTIME(create_date/1000,'%m')=#{month})
+                and (FROM_UNIXTIME(create_date/1000,'%Y') =#{year} and FROM_UNIXTIME(create_date/1000,'%m')=#{month})
             </if>
         </where>
         order by weight,create_date desc
     </select>
+
     <select id="listArticleCount" resultType="Integer">
         select count(*) from myo_article
         <where>
-        1 = 1  and `view_keys`=0 or `view_keys`=1
-        <if test="isToken == true">
-            or `view_keys`=2
-        </if>
+            (
+            `view_keys`=0 or `view_keys`=1
+            <if test="isToken == true">
+                or `view_keys`=2
+            </if>
+            )
+            <if test="categoryId != null">
+                and category_id=#{categoryId}
+            </if>
+            <if test="tagId != null">
+                and id in (select article_id from myo_article_tag where tag_id=#{tagId})
+            </if>
+            <if test="year != null and year.length>0 and month != null and month.length>0">
+                and (FROM_UNIXTIME(create_date/1000,'%Y') =#{year} and FROM_UNIXTIME(create_date/1000,'%m')=#{month})
+            </if>
         </where>
     </select>
 

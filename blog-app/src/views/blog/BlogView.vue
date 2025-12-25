@@ -35,7 +35,7 @@
               round
               icon="el-icon-edit">编辑</el-button>
           </div>
-		 
+
        <div class="me-view-content">
             <markdown-editor :editor="article.editor"/>
         </div>
@@ -89,7 +89,7 @@
             </div>
 
             <div class="me-view-comment-title">
-              <span>{{article.count}} 条评论</span> 
+              <span>{{article.count}} 条评论</span>
             </div>
 
             <commment-item v-for="(c,index) in comments"
@@ -102,7 +102,7 @@
             </commment-item>
 
           </div>
-	
+
         </div>
       </el-main>
 
@@ -124,7 +124,7 @@
     name: 'BlogView',
     created() {
       this.getArticle()
-	  
+
     },
     watch: {
       '$route': 'getArticle'
@@ -157,7 +157,7 @@
       }
     },
     computed: {
-		
+
       avatar() {
         let avatar = this.$store.state.avatar
 
@@ -174,7 +174,25 @@
 		sss(){
 			this.$router.back()
 		},
+      // 接收三个参数：类型、ID、名称
       tagOrCategory(type, id) {
+        // 核心判断逻辑：
+        // 如果文章是加密状态 (viewKeys == 1) 并且 用户未登录 (!token)
+        // 后端传过来的 viewKeys 可能是字符串 "1" 也可能是数字 1，使用 == 比较保险
+        if (this.article.viewKeys == 1 && !this.$store.state.token) {
+
+          this.$message({
+            type: 'warning',
+            message: '该信息仅对登录用户开放，请先登录!',
+            showClose: true
+          })
+
+          // 跳转登录页
+          this.$router.push({path: '/login'})
+          return;
+        }
+
+        // 其他情况（公开文章或已登录用户），允许跳转
         this.$router.push({path: `/${type}/${id}`})
       },
       editArticle() {
@@ -183,11 +201,11 @@
       getArticle() {
         let that = this
         viewArticle(that.$route.params.id,that.$store.state.token).then(data => {
-		
+
           Object.assign(that.article, data.data)
 		  const param = {'name' : that.article.id}
 
-		 
+
           that.article.editor.value = data.data.body.content
 
           that.getCommentsByArticle();
@@ -207,9 +225,9 @@
 	  },
       publishComment() {
         let that = this
-		
+
       /*  if (!that.comment.content) {
-			
+
           return that.open5();
         }
 		return that.open5(); */
@@ -220,7 +238,7 @@
             that.$message({type: 'success', message: '评论成功', showClose: true})
             that.comment.content = ''
 			that. getCommentsByArticle()//刷新评论区
-            
+
           }else{
                that.$message({type: 'error', message: data.msg, showClose: true})
           }
@@ -256,7 +274,7 @@
 		}).catch(error=>{
 			console.debug(error)
 		})
-		
+
 	  }
     },
     components: {
@@ -277,7 +295,7 @@
 
 <style>
   .me-view-body {
-    
+
   }
   .view-body{
 	  padding-top: 80px;

@@ -132,8 +132,7 @@
       'card-tag': cardTag,
       ArticleScrollPage,
       CardTechnology,
-
-	  mainTitle,
+	    mainTitle,
 	  	headertop,
 
     }
