@@ -1,17 +1,20 @@
 <template>
-  <div class="article-list-container">
-    <article-item
-      v-for="(a, index) in articles"
-      :key="a.id"
-      v-bind="a"
-      :index="index">
-    </article-item>
+  <div class="article-list-container" style="min-height: 600px;">
+
+    <div class="article-list">
+      <article-item
+        v-for="(a, index) in articles"
+        :key="a.id"
+        v-bind="a"
+        :index="(innerPage.pageNumber - 1) * innerPage.pageSize + index">
+      </article-item>
+    </div>
 
     <div v-if="noData" class="no-data">
       <el-empty description="这里空空如也..."></el-empty>
     </div>
 
-    <div class="pagination-box" v-if="!loading && !noData">
+    <div class="pagination-box" v-if="!loading && !noData && articles.length > 0">
       <el-pagination
         background
         layout="prev, pager, next"
@@ -22,7 +25,7 @@
       </el-pagination>
     </div>
 
-    <div v-if="loading" class="loading-box">
+    <div v-if="loading && articles.length === 0" class="loading-box">
       <i class="el-icon-loading"></i> 加载中...
     </div>
   </div>
@@ -38,42 +41,27 @@ export default {
     'article-item': ArticleItem
   },
   props: {
-    offset: {
-      type: Number,
-      default: 100
-    },
-    page: {
-      type: Object,
-      default() {
-        return {}
-      }
-    },
-    query: {
-      type: Object,
-      default() {
-        return {}
-      }
-    }
+    offset: { type: Number, default: 100 },
+    page: { type: Object, default() { return {} } },
+    query: { type: Object, default() { return {} } }
   },
   data() {
     return {
       loading: false,
       noData: false,
       innerPage: {
-        pageSize: 10,
+        pageSize: 5,
         pageNumber: 1,
         name: 'a.createDate',
         sort: 'desc'
       },
-      total: 0, // 用于存放文章总数
+      total: 0,
       articles: []
     }
   },
   watch: {
     'query': {
-      handler() {
-        this.resetAndLoad()
-      },
+      handler() { this.resetAndLoad() },
       deep: true
     },
     'page': {
@@ -88,7 +76,6 @@ export default {
     this.getArticles()
   },
   methods: {
-    // 重置页码并重新加载
     resetAndLoad() {
       this.noData = false
       this.articles = []
@@ -96,12 +83,12 @@ export default {
       this.getArticles()
     },
 
-    // 处理页码改变事件
+    // ⭐⭐ 修改点 2：移除所有延迟逻辑，直接请求 ⭐⭐
     handlePageChange(val) {
       this.innerPage.pageNumber = val
+      // 立即回到顶部
+      window.scrollTo({ top: 0, behavior: 'auto' }) // behavior: 'auto' 瞬间跳回，比 smooth 更快
       this.getArticles()
-      // 回到顶部，提升体验
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     },
 
     view(id) {
@@ -113,11 +100,9 @@ export default {
       that.loading = true
 
       getArticles(that.query, that.innerPage, this.$store.state.token).then(data => {
-
         let responseData = data.data;
         let newArticles = []
 
-        // 处理数据结构 (兼容 List 和 Map)
         if (responseData && responseData.articles) {
           newArticles = responseData.articles
           that.total = responseData.total
@@ -126,11 +111,10 @@ export default {
           that.total = 0
         }
 
+        // ⭐⭐ 修改点 3：数据回来直接赋值，不等待 ⭐⭐
         if (newArticles && newArticles.length > 0) {
-          // 因为后端已经处理成了乱码，前端只需要直接显示即可
           that.articles = newArticles
           that.noData = false
-
         } else {
           that.articles = []
           that.noData = true
@@ -149,18 +133,21 @@ export default {
 </script>
 
 <style scoped>
-.el-card {
-  border-radius: 0;
+.article-list-container {
+  min-height: 600px;
 }
 
-.el-card:not(:first-child) {
-  margin-top: 10px;
+.article-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
+
+/* ⭐⭐ 修改点 4：删除了所有 .staggered-fade 相关的动画 CSS ⭐⭐ */
 
 .pagination-box {
   margin: 20px 0;
   text-align: center;
-  background-color: #fff; /* 给个背景色或者透明看你喜好 */
   padding: 10px;
 }
 
