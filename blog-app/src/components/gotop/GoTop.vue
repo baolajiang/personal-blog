@@ -1,4 +1,5 @@
 <template>
+<!--  回到顶部-->
 <div>
 	<div id="percentageCounter"  :style="{'width':percentageCounter}"></div>
 	<transition>
@@ -29,15 +30,15 @@
 		let bodyHeight=document.body.scrollHeight;
 		//当前屏幕高度
 		let winHeight=window.innerHeight ;
-		
+
 		let sum=bodyHeight-winHeight==0?100:bodyHeight-winHeight;
 		if(sum==100){
 			this.percentageCounter=0+"%";
 		}else{
 			this.percentageCounter=docHeight/sum*100+"%";
 		}
-		
-		
+
+
 		let moblieGoTop = document.querySelector("#moblieGoTop");
         if (docHeight > 0) {
 		  moblieGoTop.style.transform="scale(1)"
@@ -96,7 +97,7 @@
 	    transform: scale(0);
 	    transition: all 0.8s ease !important;
 	    border: 1px solid #FFFFFF;
-		
+
 	}
 	#percentageCounter {
 	    position: fixed;
@@ -110,6 +111,6 @@
 	}
 
 
-	
+
 
 </style>

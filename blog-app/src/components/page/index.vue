@@ -1,6 +1,6 @@
 <template>
 <div>
-	<div class="topbg">
+<!--	<div class="topbg">
 		<div class="head-guide">
 			<div class="guide-info">
 				<h2 class="guide_title">{{this.$myName}}</h2>
@@ -31,7 +31,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div>-->
 </div>
 </template>
 <script>
@@ -161,7 +161,7 @@ import $ from 'jquery'
 		background-attachment: fixed;
 		background-size: cover;
 		z-index: -1;
-		background-image: url("https://www.loliapi.com/acg/");
+
 
 	}
 	.topbg::before{

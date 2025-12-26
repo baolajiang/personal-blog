@@ -78,10 +78,7 @@ body {
 	font-weight: 400;
 	font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
 	line-height: 1.5;
-	/*background-image: url(../static/Anime-Wallpaper-master/96.jpg);
-	background-repeat :no-repeat; */
-	/* background-size:100% 100%;
-	-moz-background-size:100% 100%; */
+
 
 }
 
@@ -93,14 +90,6 @@ a {
 a:hover {
 	color: #00aaff;
 }
-.me-area{
-	background-color: #fff;
-}
-html{height:100%;}
-body{min-height:100%;}
-body{position:relative;}
 
-.me-pull-right {
-	float: right;
-}
+
 </style>
