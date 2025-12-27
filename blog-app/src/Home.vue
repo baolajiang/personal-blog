@@ -4,7 +4,7 @@
 		<base-header :activeIndex="activeIndex" class="me-header " @func="showdeng"></base-header>
 
 		<headertop class="header-top" v-if="$route.meta.requireShow"></headertop>
-		<div class="layou-content">
+		<div class="layout-content">
 			<router-view/>
 		</div>
 
@@ -93,10 +93,15 @@ body{
   --main-bg: brown;
 }
 
-.layou-content{
-	min-height: 100vh;
+.layout-content{
+
 	background-color: var(--myo-bg);
-	transition: margin .8s, background .8s;
+
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+
 }
 
 html{

@@ -6,8 +6,8 @@
      </keep-alive> -->
         <!-- 不需要缓存的视图组件 !$route.meta.keepAlive-->
         <router-view ></router-view>
-    <go-top></go-top>
-	<theme></theme>
+         <go-top></go-top>
+
 
   </div>
 </template>

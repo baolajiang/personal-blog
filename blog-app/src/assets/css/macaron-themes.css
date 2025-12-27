@@ -27,8 +27,17 @@
   /* 鼠标离开时：卡片复位动画 (无延迟) */
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   transition-delay: 0s;
+  max-width: 850px;
 
+
+  margin-left: auto;
+  margin-right: auto;
+
+
+  width: 100%;
   z-index: 1; overflow: hidden;
+
+
 }
 
 /* 悬停效果 */
