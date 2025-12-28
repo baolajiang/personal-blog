@@ -81,11 +81,7 @@ export default {
 
 
 body{
-	background: url("https://www.loliapi.com/acg/");
-	background-repeat :no-repeat;
-	background-position: center;
-	background-size:cover;
-	background-attachment: fixed;
+
 
 
 }

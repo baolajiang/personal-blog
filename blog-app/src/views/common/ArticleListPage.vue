@@ -36,7 +36,7 @@ import ArticleItem from '@/components/article/ArticleItem'
 import {getArticles} from '@/api/article'
 
 export default {
-  name: "ArticleScrollPage",
+  name: "ArticleListPage",
   components: {
     'article-item': ArticleItem
   },
@@ -143,7 +143,7 @@ export default {
   gap: 15px;
 }
 
-/* ⭐⭐ 修改点 4：删除了所有 .staggered-fade 相关的动画 CSS ⭐⭐ */
+
 
 .pagination-box {
   margin: 20px 0;

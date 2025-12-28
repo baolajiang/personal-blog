@@ -18,7 +18,7 @@
         </div>
 
         <div class="me-ct-articles">
-          <article-scroll-page v-bind="article"></article-scroll-page>
+          <article-list-page v-bind="article"></article-list-page>
         </div>
 
       </el-main>
@@ -27,7 +27,7 @@
 </template>
 
 <script>
-  import ArticleScrollPage from '@/views/common/ArticleScrollPage'
+  import ArticleListPage from '@/views/common/ArticleListPage'
   import {getArticlesByCategory, getArticlesByTag} from '@/api/article'
   import {getTagDetail} from '@/api/tag'
   import {getCategoryDetail} from '@/api/category'
@@ -99,7 +99,7 @@
         let that = this
         getArticlesByCategory(id).then(data => {
           that.articles = data.data
-		 
+
         }).catch(error => {
           if (error !== 'error') {
             that.$message({type: 'error', message: '文章加载失败', showClose: true})
@@ -110,7 +110,7 @@
         let that = this
         getArticlesByTag(id).then(data => {
           that.articles = data.data
-		 
+
         }).catch(error => {
           if (error !== 'error') {
             that.$message({type: 'error', message: '文章加载失败', showClose: true})
@@ -119,7 +119,7 @@
       }
     },
     components: {
-      ArticleScrollPage
+      ArticleListPage
     }
   }
 </script>

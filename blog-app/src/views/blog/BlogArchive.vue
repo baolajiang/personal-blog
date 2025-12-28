@@ -2,21 +2,21 @@
   <div data-title="归档">
     <div class="archives-content">
       <div class="archives-content-main">
-        <article-scroll-page></article-scroll-page>
+        <article-list-page></article-list-page>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// 👇 修改引用路径，直接指向具体的 ArticleScrollPage.vue 文件
+// 👇 修改引用路径，直接指向具体的 ArticleListPage.vue 文件
 
-import ArticleScrollPage from '@/views/common/ArticleScrollPage'
+import ArticleListPage from '@/views/common/ArticleListPage'
 
 export default {
   name: "BlogArchive",
   components: {
-    'article-scroll-page': ArticleScrollPage
+    'article-list-page': ArticleListPage
   },
 }
 </script>

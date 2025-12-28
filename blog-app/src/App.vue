@@ -48,19 +48,17 @@ export default {
 	::-webkit-scrollbar-thumb {
 	    background-color: #69d2e7;
 	}
-
 	::-moz-selection{background:#444444;color: #FFFFFF;}
 	::selection {background:#444444;color: #FFFFFF;}
 	code::-moz-selection {background:#444444;color: #FFFFFF;}
 	code::selection {background:#444444;color: #FFFFFF;}
-body {
 
-	background-color: #f5f5f5;
-	font-weight: 400;
-	font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
-	line-height: 1.5;
-
-
+#app {
+  background-image: url('../static/img/anime-sunset-art-wallpaper-2560x1080_14.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* 固定背景，不隨內容滾動 */
+  background-repeat: no-repeat;
 }
 
 a {

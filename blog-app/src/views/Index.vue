@@ -9,7 +9,7 @@
 			 </div>
 			  <div class="content-main">
 				    <main-title></main-title>
-					<article-scroll-page v-bind="article"></article-scroll-page>
+					<article-list-page v-bind="article"></article-list-page>
 			  </div>
 
 			  <div class="content-right">
@@ -40,7 +40,7 @@
   import cardArticle from '@/components/card/cardArticle'
   import CardTechnology from '@/components/card/CardTechnology'
   import cardTag from '@/components/card/cardTag'
-  import ArticleScrollPage from '@/views/common/ArticleScrollPage'
+  import ArticleListPage from '@/views/common/ArticleListPage'
   import headertop from '@/components/page'
 
 
@@ -130,7 +130,7 @@
       'card-me': cardMe,
       'card-article': cardArticle,
       'card-tag': cardTag,
-      ArticleScrollPage,
+      ArticleListPage,
       CardTechnology,
 	    mainTitle,
 	  	headertop,
