@@ -7,6 +7,9 @@ import com.myo.blog.dao.pojo.SysUser;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.UserVo;
 import com.myo.blog.entity.params.UserParam;
+import java.util.Collection;
+
+import java.util.List;
 
 
 public interface SysUserService {
@@ -69,4 +72,8 @@ public interface SysUserService {
      * @param sysUser
      */
     boolean updateById(SysUser sysUser);
+    /**
+     * 批量查詢使用者
+     */
+    List<SysUser> findUserByIds(Collection<Long> ids);
 }

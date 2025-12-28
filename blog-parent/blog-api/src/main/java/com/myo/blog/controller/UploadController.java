@@ -3,7 +3,7 @@ package com.myo.blog.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.myo.blog.dao.mapper.ArticleMapper;
 import com.myo.blog.dao.pojo.Article;
-import com.myo.blog.utils.QiniuUtils;
+
 import com.myo.blog.entity.Result;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +20,7 @@ import java.util.UUID;
 @RequestMapping("upload")
 public class UploadController {
 
-    @Autowired
-    private QiniuUtils qiniuUtils;
+
 
     @PostMapping
     public Result upload(@RequestParam("image") MultipartFile file){
@@ -32,10 +31,7 @@ public class UploadController {
         //上传文件
         // 降低自身应用服务器的带宽消耗
         //System.out.println("唯一的文件名称1:"+fileName);
-        boolean upload = qiniuUtils.upload(file, fileName);
-        if (upload){
-            return Result.success(QiniuUtils.url + fileName);
-        }
+
         return Result.fail(20001,"上传失败");
     }
     @Autowired
@@ -59,11 +55,9 @@ public class UploadController {
         //上传文件
         // 降低自身应用服务器的带宽消耗
 
-        boolean upload = qiniuUtils.upload(file, fileName);
 
-        if (upload){
-            return Result.success(QiniuUtils.url + fileName);
-        }
+
+
         return Result.fail(20001,"上传失败");
     }
     @PostMapping("file2")
@@ -75,11 +69,7 @@ public class UploadController {
         // 降低自身应用服务器的带宽消耗
 
 
-        boolean upload = qiniuUtils.upload(file, fileName);
 
-        if (upload){
-            return Result.success(QiniuUtils.url + fileName);
-        }
         return Result.fail(20001,"上传失败");
     }
 
@@ -91,11 +81,7 @@ public class UploadController {
         //上传文件
         // 降低自身应用服务器的带宽消耗
 
-        boolean upload = qiniuUtils.upload(file, fileName);
 
-        if (upload){
-            return Result.success(QiniuUtils.url + fileName);
-        }
         return Result.fail(20001,"上传失败");
     }
     //修改头像
@@ -109,11 +95,9 @@ public class UploadController {
         //上传文件
         // 降低自身应用服务器的带宽消耗
 
-        boolean upload = qiniuUtils.upload(file, fileName);
 
-        if (upload){
-            return Result.success(QiniuUtils.url + fileName);
-        }
+
+
         return Result.fail(20001,"上传失败");
         //return Result.success(fileName);
     }

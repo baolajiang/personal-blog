@@ -3,21 +3,11 @@ package com.myo.blog.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.myo.blog.controller.UploadController;
 import com.myo.blog.dao.dos.Archives;
-import com.myo.blog.dao.mapper.ArticleBodyMapper;
-import com.myo.blog.dao.mapper.ArticleMapper;
-import com.myo.blog.dao.mapper.ArticleTagMapper;
-import com.myo.blog.dao.pojo.Article;
-import com.myo.blog.dao.pojo.ArticleBody;
-import com.myo.blog.dao.pojo.ArticleTag;
-import com.myo.blog.dao.pojo.SysUser;
+import com.myo.blog.dao.mapper.*;
+import com.myo.blog.dao.pojo.*;
 import com.myo.blog.service.*;
-
-import com.myo.blog.entity.ArticleBodyVo;
-import com.myo.blog.entity.ArticleVo;
-import com.myo.blog.entity.Result;
-import com.myo.blog.entity.TagVo;
+import com.myo.blog.entity.*; // 包含 CategoryVo, ArticleVo 等
 import com.myo.blog.entity.params.ArticleParam;
 import com.myo.blog.entity.params.PageParams;
 import com.myo.blog.utils.*;
@@ -26,34 +16,62 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+/**
+ * 文章服務實作類 (ArticleService Implementation)
+ * 負責處理文章相關的所有業務邏輯，包括列表查詢、詳情查看、發布文章等。
+ */
 @Service
 public class ArticleServiceImpl implements ArticleService {
 
+    // 注入 MyBatis Plus 的 Mapper 介面，用於操作資料庫
     @Autowired
     private ArticleMapper articleMapper;
+    @Autowired
+    private ArticleBodyMapper articleBodyMapper;
+    @Autowired
+    private ArticleTagMapper articleTagMapper;
+
+    // 注入其他服務 Service，用於處理關聯業務
     @Autowired
     private TagService tagService;
     @Autowired
     private SysUserService sysUserService;
     @Autowired
-    private ArticleTagMapper articleTagMapper;
+    private CategoryService categoryService;
     @Autowired
-    private QiniuUtils qiniuUtils;
-    //查询文章列表
-    @Override
-    public Result listArticle(PageParams pageParams,String token) {
-        Page<Article> page = new Page<>(pageParams.getPage(),pageParams.getPageSize());
+    private ThreadService threadService;
 
-        boolean isToken=!"undefined".equals(token);
+
+
+    // 【新增注入】直接注入 Mapper 以便進行批量查詢 (Batch Query)
+    // 這是為了在 copyList 方法中解決 N+1 問題，直接用 ID 列表查出資料
+    @Autowired
+    private SysUserMapper sysUserMapper;
+    @Autowired
+    private CategoryMapper categoryMapper;
+
+    /**
+     * 查詢文章列表 (分頁)
+     * 1. 分頁查詢資料庫表
+     * 2. 轉換成 VO 對象 (同時進行效能優化)
+     *
+     * @param pageParams 分頁參數
+     * @param token 用戶 Token (用於判斷權限)
+     * @return Result
+     */
+    @Override
+    public Result listArticle(PageParams pageParams, String token) {
+        // 1. 建立分頁物件
+        Page<Article> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+
+        // 2. 判斷是否有 Token (是否登入)
+        boolean isToken = !"undefined".equals(token);
+
+        // 3. 呼叫 Mapper 進行自定義的分頁查詢 (支持歸檔、標籤、分類篩選)
         IPage<Article> articleIPage = articleMapper.listArticle(
                 page,
                 pageParams.getCategoryId(),
@@ -64,108 +82,86 @@ public class ArticleServiceImpl implements ArticleService {
         );
 
         List<Article> records = articleIPage.getRecords();
-        // 将数据库实体转换为前端视图对象 (VO)
+
+        // 4. 【核心優化點】 將資料庫實體轉換為前端視圖對象 (VO)
+        // 這裡調用我們優化後的 copyList 方法，減少資料庫查詢次數
         List<ArticleVo> articleVoList = copyList(records, true, true, false, false, isToken);
 
-        // MyBatis Plus 自动查询的总记录数
+        // 5. 獲取總記錄數
         long total = articleIPage.getTotal();
 
-        //封装到 Map 中返回
+        // 6. 封裝結果返回
         Map<String, Object> resultData = new HashMap<>();
-        resultData.put("articles", articleVoList); // 文章列表
-        resultData.put("total", total);            // 总条数
+        resultData.put("articles", articleVoList);
+        resultData.put("total", total);
 
         return Result.success(resultData);
     }
-    //查询一个多少文章数量
-    public Result listArticleCount(String token){
-        boolean isToken=!"undefined".equals(token);
-        Integer count=articleMapper.listArticleCount(isToken);
+
+    /**
+     * 查詢文章總數
+     */
+    @Override
+    public Result listArticleCount(String token) {
+        boolean isToken = !"undefined".equals(token);
+        Integer count = articleMapper.listArticleCount(isToken);
         return Result.success(count);
-    };
-    /*查询mac*/
+    }
+
+    /**
+     * 查詢訪客的 IP 和城市信息
+     */
     @Override
     public Result queryMAC() {
-        //获取request 设置IP地址
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
-        String ip=IpUtils.getIpAddr(request);
-        //String mac=LocalMACUtil.getLocalMac();//
-        String addr=IpUtils.getCityInfo(ip);
-
+        String ip = IpUtils.getIpAddr(request);
+        String addr = IpUtils.getCityInfo(ip);
         return Result.success(addr);
     }
 
-//    @Override
-//    public Result listArticle(PageParams pageParams) {
-//        /**
-//         * 1. 分页查询 article数据库表
-//         */
-//        Page<Article> page = new Page<>(pageParams.getPage(),pageParams.getPageSize());
-//        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
-//        if (pageParams.getCategoryId() != null){
-//            // and category_id=#{categoryId}
-//            queryWrapper.eq(Article::getCategoryId,pageParams.getCategoryId());
-//        }
-//        List<Long> articleIdList = new ArrayList<>();
-//        if (pageParams.getTagId() != null){
-//            //加入标签 条件查询
-//            //article表中 并没有tag字段 一篇文章 有多个标签
-//            //article_tag  article_id 1 : n tag_id
-//            LambdaQueryWrapper<ArticleTag> articleTagLambdaQueryWrapper = new LambdaQueryWrapper<>();
-//            articleTagLambdaQueryWrapper.eq(ArticleTag::getTagId,pageParams.getTagId());
-//            List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagLambdaQueryWrapper);
-//            for (ArticleTag articleTag : articleTags) {
-//                articleIdList.add(articleTag.getArticleId());
-//            }
-//            if (articleIdList.size() > 0){
-//                // and id in(1,2,3)
-//                queryWrapper.in(Article::getId,articleIdList);
-//            }
-//        }
-//        //是否置顶进行排序
-//        //order by create_date desc
-//        queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
-//        Page<Article> articlePage = articleMapper.selectPage(page, queryWrapper);
-//        List<Article> records = articlePage.getRecords();
-//        //能直接返回吗？ 很明显不能
-//        List<ArticleVo> articleVoList = copyList(records,true,true);
-//        return Result.success(articleVoList);
-//    }
-
+    /**
+     * 最熱文章 (依照瀏覽量排序)
+     */
     @Override
     public Result hotArticle(int limit) {
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByDesc(Article::getViewCounts);
-        queryWrapper.select(Article::getId,Article::getTitle);
-        queryWrapper.last("limit "+limit);
-        //select id,title from article order by view_counts desc limit 5
+        queryWrapper.select(Article::getId, Article::getTitle);
+        queryWrapper.last("limit " + limit);
         List<Article> articles = articleMapper.selectList(queryWrapper);
 
-        return Result.success(copyList(articles,false,false));
+        // 熱門文章列表不需要 Body 和 Category 詳情，傳 false 以提升效能
+        return Result.success(copyList(articles, false, false));
     }
 
+    /**
+     * 最新文章 (依照創建時間排序)
+     */
     @Override
     public Result newArticles(int limit) {
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.orderByDesc(Article::getCreateDate);
-        queryWrapper.select(Article::getId,Article::getTitle);
-        queryWrapper.last("limit "+limit);
-        //select id,title from article order by create_date desc desc limit 5
+        queryWrapper.select(Article::getId, Article::getTitle);
+        queryWrapper.last("limit " + limit);
         List<Article> articles = articleMapper.selectList(queryWrapper);
 
-        return Result.success(copyList(articles,false,false));
+        return Result.success(copyList(articles, false, false));
     }
 
+    /**
+     * 文章歸檔列表 (按年月分組)
+     */
     @Override
     public Result listArchives() {
         List<Archives> archivesList = articleMapper.listArchives();
         return Result.success(archivesList);
     }
 
-    @Autowired
-    private ThreadService threadService;
-
-
+    /**
+     * 查詢單篇文章詳情
+     * @param articleId 文章 ID
+     * @param token 用戶 Token
+     */
     @Override
     public Result findArticleById(Long articleId, String token) {
         Article article = this.articleMapper.selectById(articleId);
@@ -175,60 +171,61 @@ public class ArticleServiceImpl implements ArticleService {
 
         boolean isToken = !"undefined".equals(token);
 
-        // 1. 隐藏文章
-        if (!isToken && article.getViewKeys() == 2) {
-            return Result.fail(403, "该文章不存在或您无权访问");
+        // 1. 隱藏文章判斷 (viewKeys=2 為隱藏)
+        // 【修復 NPE】 增加 null 判斷，避免 ViewKeys 為 null 時拆箱報錯
+        if (!isToken && article.getViewKeys() != null && article.getViewKeys() == 2) {
+            return Result.fail(403, "該文章不存在或您無權訪問");
         }
 
-        // 2. 转换 VO
+        // 2. 轉換 VO (單篇文章不需要批量優化，直接調用 copy 即可)
+        // 這裡需要 Body (正文) 和 Category (分類)
         ArticleVo articleVo = copy(article, true, true, true, true);
 
-        // 3. 加密脱敏
-        if (!isToken && article.getViewKeys() == 1) {
-
-            // 标题 & 简介
+        // 3. 加密脫敏 (viewKeys=1 為加密)
+        // 如果未登入，將標題、簡介、內容打碼
+        // 【修復 NPE】 增加 null 判斷
+        if (!isToken && article.getViewKeys() != null && article.getViewKeys() == 1) {
             int titleLen = articleVo.getTitle() != null ? articleVo.getTitle().length() : 5;
             articleVo.setTitle(ArticleUtils.keys(titleLen));
 
             int summaryLen = articleVo.getSummary() != null ? articleVo.getSummary().length() : 20;
             articleVo.setSummary(ArticleUtils.keys(summaryLen));
 
-            // 正文
+            // 正文打碼
             if (articleVo.getBody() != null && articleVo.getBody().getContent() != null) {
                 int bodyLen = articleVo.getBody().getContent().length();
                 int maskLen = Math.min(bodyLen, 800);
                 articleVo.getBody().setContent(ArticleUtils.keys(maskLen));
             }
 
-            // --- 【修改点】标签统一为一个 "******" ---
+            // 標籤打碼 (統一顯示為 ******)
             List<TagVo> maskTagList = new ArrayList<>();
             TagVo maskTag = new TagVo();
             maskTag.setTagName("******");
             maskTagList.add(maskTag);
-
             articleVo.setTags(maskTagList);
 
-            // --- 【新增】分类加密 ---
+            // 分類打碼
             if (articleVo.getCategory() != null) {
                 articleVo.getCategory().setCategoryName("******");
             }
         }
 
+        // 記錄閱讀數 (使用線程池異步處理，不阻塞主線程)
         threadService.updateArticleViewCount(articleMapper, article);
         return Result.success(articleVo);
     }
 
+    /**
+     * 發布文章
+     */
     @Override
-    @Transactional
+    @Transactional // 開啟事務，保證資料一致性 (Tag, Body, Article 必須同時成功)
     public Result publish(ArticleParam articleParam) {
-        //此接口 要加入到登录拦截当中
+        // 獲取當前登入用戶
         SysUser sysUser = UserThreadLocal.get();
-        /**
-         * 1. 发布文章 目的 构建Article对象
-         * 2. 作者id  当前的登录用户
-         * 3. 标签  要将标签加入到 关联列表当中
-         * 4. body 内容存储 article bodyId
-         */
+
+        // 1. 構建 Article 對象
         Article article = new Article();
         article.setAuthorId(sysUser.getId());
         article.setWeight(Article.Article_Common);
@@ -239,128 +236,166 @@ public class ArticleServiceImpl implements ArticleService {
         article.setCreateDate(System.currentTimeMillis());
         article.setCategoryId(Long.parseLong(articleParam.getCategory().getId()));
 
-
-        //获取最新文章的id   articlesId
+        // 獲取最新文章 ID (注意：生產環境建議用雪花算法或資料庫自增，這裡沿用原邏輯)
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.select(Article::getId);
         queryWrapper.last("limit 1");
         queryWrapper.orderByDesc(Article::getCreateDate);
         List<Article> articles = articleMapper.selectList(queryWrapper);
-        int id=0;
-        if(articles.size()!=0){
-            id=Integer.parseInt(String.valueOf(articles.get(0).getId()));
+        long id = 0;
+        if (articles.size() != 0) {
+            id = articles.get(0).getId();
         }
 
-        //封面cover
-        String cover=articleParam.getCover();
-
-
-        article.setCover(cover);
-        //获取最新文章的位置id然后加169
-
-        int articlesId=id+1;
-        //将文章id添加
-        article.setId(Long.parseLong(String.valueOf(articlesId)));
-        //没有article.setId的活会自动添加
+        // 設定封面
+        article.setCover(articleParam.getCover());
+        // 設定 ID
+        article.setId(id + 1);
         this.articleMapper.insert(article);
 
-        // ==================【测试开始：插入这段代码】==================
-/*        if (true) {
-            throw new RuntimeException("===> 我是故意来捣乱的异常，测试回滚！ <===");
-        }*/
-        // ==================【测试结束】==================
-
-        //tag
+        // 2. 處理標籤 (關聯表 article_tag)
         List<TagVo> tags = articleParam.getTags();
-        if (tags != null){
+        if (tags != null) {
             for (TagVo tag : tags) {
-                Long articleId = article.getId();
                 ArticleTag articleTag = new ArticleTag();
                 articleTag.setTagId(Long.parseLong(tag.getId()));
-                articleTag.setArticleId(articleId);
+                articleTag.setArticleId(article.getId());
                 articleTagMapper.insert(articleTag);
             }
         }
-        //body
-        ArticleBody articleBody  = new ArticleBody();
+
+        // 3. 處理文章內容 (表 article_body)
+        ArticleBody articleBody = new ArticleBody();
         articleBody.setArticleId(article.getId());
         articleBody.setContent(articleParam.getBody().getContent());
         articleBody.setContentHtml(articleParam.getBody().getContentHtml());
-        //
 
-        //获取最新文章的body中id   articlesBodyId
+        // 獲取最新 Body ID
         LambdaQueryWrapper<ArticleBody> queryWrapper2 = new LambdaQueryWrapper<>();
         queryWrapper2.select(ArticleBody::getId);
         queryWrapper2.last("limit 1");
         queryWrapper2.orderByDesc(ArticleBody::getId);
         List<ArticleBody> articleBodyList = articleBodyMapper.selectList(queryWrapper2);
-        long id2=0;
-        if(articleBodyList.size()!=0){
-            id2=articleBodyList.get(0).getId();
+        long id2 = 0;
+        if (articleBodyList.size() != 0) {
+            id2 = articleBodyList.get(0).getId();
         }
-        int articlesBodyId=Integer.parseInt(String.valueOf(id2))+1;
-        //将id添加到获取最新文章的body中id
-        articleBody.setId( Long.parseLong(String.valueOf(articlesBodyId)));
-        //没有articleBody.setId的活会自动添加
+        articleBody.setId(id2 + 1);
         articleBodyMapper.insert(articleBody);
+
+        // 4. 回填 BodyID 到 Article 表
         article.setBodyId(articleBody.getId());
         articleMapper.updateById(article);
-        Map<String,String> map = new HashMap<>();
-        map.put("id",article.getId().toString());
+
+        Map<String, String> map = new HashMap<>();
+        map.put("id", article.getId().toString());
         return Result.success(map);
     }
 
-
+    /**
+     * 重載方法：簡化版 copyList (兼容舊代碼調用，不需要 token 的場景)
+     */
     private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor) {
-        List<ArticleVo> articleVoList = new ArrayList<>();
-        for (Article record : records) {
-            articleVoList.add(copy(record,isTag,isAuthor,false,false));
-        }
-        return articleVoList;
-    }
-    private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor, boolean isBody,boolean isCategory) {
-        List<ArticleVo> articleVoList = new ArrayList<>();
-        for (Article record : records) {
-            articleVoList.add(copy(record,isTag,isAuthor,isBody,isCategory));
-        }
-        return articleVoList;
+        return copyList(records, isTag, isAuthor, false, false, false);
     }
 
+    /**
+     * 核心優化方法：批量將 Article 轉換為 ArticleVo
+     * 解決了 N+1 查詢問題：避免在迴圈中多次查詢資料庫
+     *
+     * @param records 資料庫查出的文章列表
+     * @param isTag 是否查詢標籤
+     * @param isAuthor 是否查詢作者
+     * @param isBody 是否查詢內容
+     * @param isCategory 是否查詢分類
+     * @param isToken 是否有登入 Token (用於判斷隱藏文章)
+     * @return List<ArticleVo>
+     */
     private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor, boolean isBody, boolean isCategory, boolean isToken) {
         List<ArticleVo> articleVoList = new ArrayList<>();
 
+        // === 1. 收集 ID (準備階段) ===
+        // 遍歷所有文章，把需要的 AuthorId 和 CategoryId 收集起來，準備一次查完
+        List<Long> authorIds = new ArrayList<>();
+        List<Long> categoryIds = new ArrayList<>();
+
         for (Article record : records) {
-            // 1. 隐藏文章 (viewKeys=2) -> 未登录直接跳过
-            if (!isToken && record.getViewKeys() == 2) {
+            // 【修復 NPE】 如果是隱藏文章且未登入，跳過，不需要收集它的 ID
+            if (!isToken && record.getViewKeys() != null && record.getViewKeys() == 2) {
                 continue;
             }
-            // 2. 转换数据
-            ArticleVo articleVo = copy(record, isTag, isAuthor, isBody, isCategory);
-            // 3. 加密文章 (viewKeys=1) -> 未登录进行脱敏
-            if (!isToken && record.getViewKeys() == 1) {
+            if (isAuthor) {
+                authorIds.add(record.getAuthorId());
+            }
+            if (isCategory) {
+                categoryIds.add(record.getCategoryId());
+            }
+        }
 
-                // --- 标题和简介乱码 (保持不变) ---
+        // === 2. 批量查詢 (資料庫交互階段) ===
+
+        // A. 查詢作者信息，並轉為 Map<Long, SysUser> 方便查找
+        Map<Long, SysUser> authorMap = new HashMap<>();
+        if (isAuthor && !authorIds.isEmpty()) {
+            // 使用 MyBatis Plus 的 selectBatchIds (SELECT * FROM sys_user WHERE id IN (...))
+            List<SysUser> users = sysUserMapper.selectBatchIds(authorIds);
+            for (SysUser u : users) {
+                authorMap.put(u.getId(), u);
+            }
+        }
+
+        // B. 查詢分類信息，並轉為 Map<Long, CategoryVo> 方便查找
+        // 注意：Map 的 Value 是 CategoryVo，因為 ArticleVo 需要的是這個類型
+        Map<Long, CategoryVo> categoryMap = new HashMap<>();
+        if (isCategory && !categoryIds.isEmpty()) {
+            List<Category> categories = categoryMapper.selectBatchIds(categoryIds);
+            for (Category c : categories) {
+                // 將 Category 實體轉換為 VO 對象
+                CategoryVo vo = new CategoryVo();
+                BeanUtils.copyProperties(c, vo);
+                vo.setId(String.valueOf(c.getId())); // ID 類型轉換 (Long -> String)
+                categoryMap.put(c.getId(), vo);
+            }
+        }
+
+        // === 3. 組裝數據 (記憶體處理階段) ===
+        for (Article record : records) {
+            // 【修復 NPE】 再次過濾隱藏文章
+            if (!isToken && record.getViewKeys() != null && record.getViewKeys() == 2) {
+                continue;
+            }
+
+            // 【重點】調用 copy 時，isAuthor 和 isCategory 傳入 false
+            // 這是為了防止 copy 方法內部再去查詢資料庫，我們稍後用 Map 手動賦值
+            ArticleVo articleVo = copy(record, isTag, false, isBody, false);
+
+            // 手動填入作者信息 (從 Map 獲取，不查庫)
+            if (isAuthor && authorMap.containsKey(record.getAuthorId())) {
+                articleVo.setAuthor(authorMap.get(record.getAuthorId()).getNickname());
+            }
+
+            // 手動填入分類信息 (從 Map 獲取，不查庫)
+            if (isCategory && categoryMap.containsKey(record.getCategoryId())) {
+                articleVo.setCategory(categoryMap.get(record.getCategoryId()));
+            }
+
+            // 加密/脫敏處理 (viewKeys=1)
+            // 【修復 NPE】 增加 null 判斷
+            if (!isToken && record.getViewKeys() != null && record.getViewKeys() == 1) {
                 int titleLen = articleVo.getTitle() != null ? articleVo.getTitle().length() : 5;
                 articleVo.setTitle(ArticleUtils.keys(titleLen));
 
                 int summaryLen = articleVo.getSummary() != null ? articleVo.getSummary().length() : 10;
                 articleVo.setSummary(ArticleUtils.keys(summaryLen));
 
-                // --- 【修改点】标签统一为一个 "******" ---
-                // 不管原来有几个标签，这里创建一个新的列表，只放一个伪造的标签
                 List<TagVo> maskTagList = new ArrayList<>();
                 TagVo maskTag = new TagVo();
                 maskTag.setTagName("******");
-                // maskTag.setId("-1"); // 如果前端报错key重复，可以给个假ID
                 maskTagList.add(maskTag);
-
-                // 直接替换掉原来的标签列表
                 articleVo.setTags(maskTagList);
 
-                // 如果当前 ArticleVo 里有分类信息，就把名字改掉
                 if (articleVo.getCategory() != null) {
                     articleVo.getCategory().setCategoryName("******");
-                    // articleVo.getCategory().setId("-1"); // 可选：防止点击跳转
                 }
             }
 
@@ -369,47 +404,61 @@ public class ArticleServiceImpl implements ArticleService {
         return articleVoList;
     }
 
-    @Autowired
-    private CategoryService categoryService;
-
-    private ArticleVo copy(Article article, boolean isTag, boolean isAuthor, boolean isBody,boolean isCategory){
-
+    /**
+     * 單篇文章轉換方法
+     * 負責將 Article 實體屬性複製到 ArticleVo
+     */
+    private ArticleVo copy(Article article, boolean isTag, boolean isAuthor, boolean isBody, boolean isCategory) {
         ArticleVo articleVo = new ArticleVo();
+        // ID 轉換
         articleVo.setId(String.valueOf(article.getId()));
+        // 屬性複製 (使用 BeanUtils)
+        BeanUtils.copyProperties(article, articleVo);
 
-        BeanUtils.copyProperties(article,articleVo);
-        articleVo.setViewKeys(String.valueOf(article.getViewKeys()));
+        // 【修復 NPE】 避免 viewKeys 為 null 時轉成 "null" 字串，改為預設 "0"
+        if (article.getViewKeys() != null) {
+            articleVo.setViewKeys(String.valueOf(article.getViewKeys()));
+        } else {
+            articleVo.setViewKeys("0"); // 默認為 0 (公開)
+        }
+
+        // 時間格式化
         articleVo.setCreateDate(new DateTime(article.getCreateDate()).toString("yyyy-MM-dd HH:mm"));
-        //并不是所有的接口 都需要标签 ，作者信息
-        if (isTag){
+
+        // 標籤查詢 (暫時維持單次查詢，若有性能問題可後續優化)
+        if (isTag) {
             Long articleId = article.getId();
             articleVo.setTags(tagService.findTagsByArticleId(articleId));
         }
-        if (isAuthor){
+
+        // 作者查詢 (若被 copyList 調用，此處應為 false)
+        if (isAuthor) {
             Long authorId = article.getAuthorId();
             articleVo.setAuthor(sysUserService.findUserById(authorId).getNickname());
         }
-        if (isBody){
+
+        // 內容查詢
+        if (isBody) {
             Long bodyId = article.getBodyId();
             articleVo.setBody(findArticleBodyById(bodyId));
         }
-        if (isCategory){
+
+        // 分類查詢 (若被 copyList 調用，此處應為 false)
+        if (isCategory) {
             Long categoryId = article.getCategoryId();
             articleVo.setCategory(categoryService.findCategoryById(categoryId));
         }
 
-
         return articleVo;
     }
 
-    @Autowired
-    private ArticleBodyMapper articleBodyMapper;
-
+    /**
+     * 查詢文章內容
+     */
     private ArticleBodyVo findArticleBodyById(Long bodyId) {
         ArticleBody articleBody = articleBodyMapper.selectById(bodyId);
         ArticleBodyVo articleBodyVo = new ArticleBodyVo();
         articleBodyVo.setContent(articleBody.getContent());
         return articleBodyVo;
     }
-
 }

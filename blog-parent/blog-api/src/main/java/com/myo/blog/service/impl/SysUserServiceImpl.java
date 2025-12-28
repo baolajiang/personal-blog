@@ -23,9 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Collection;
+import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -275,7 +279,10 @@ public class SysUserServiceImpl implements SysUserService {
         return this.sysUserMapper.updateById(sysUser) > 0;
     }
 
-
+    public List<SysUser> findUserByIds(Collection<Long> ids) {
+        // 使用你已經注入的 sysUserMapper，而不是 baseMapper
+        return sysUserMapper.selectBatchIds(ids);
+    }
 
 
 }

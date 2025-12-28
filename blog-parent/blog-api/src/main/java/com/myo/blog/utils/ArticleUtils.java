@@ -11,7 +11,7 @@ import java.util.Random;
 public class ArticleUtils {
 
     // 定义一个更“酷”的乱码字符池 (包含块状字符、符号等)
-    private static final String MASK_POOL = "▓▒░!@#$%^&*()_+{}|:<>?[]-=";
+    private static final String MASK_POOL = "▓▒░abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$^*()_+=?";
     // 如果喜欢纯黑客帝国风格，可以用这个: "01"
     // 如果喜欢纯块状风格，可以用这个: "█▓▒░"
 

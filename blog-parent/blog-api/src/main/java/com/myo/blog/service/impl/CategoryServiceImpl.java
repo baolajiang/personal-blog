@@ -9,9 +9,10 @@ import com.myo.blog.entity.Result;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
+
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -51,6 +52,12 @@ public class CategoryServiceImpl implements CategoryService {
         return Result.success(copy(category));
     }
 
+    @Override
+    public List<Category> findCategoryByIds(Collection<Long> ids) {
+        // 使用你已經注入的 categoryMapper
+        return categoryMapper.selectBatchIds(ids);
+    }
+
     public CategoryVo copy(Category category){
         CategoryVo categoryVo = new CategoryVo();
         BeanUtils.copyProperties(category,categoryVo);
@@ -64,4 +71,6 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return categoryVoList;
     }
+
+
 }
