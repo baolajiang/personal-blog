@@ -6,6 +6,7 @@
         v-for="(a, index) in articles"
         :key="a.id"
         v-bind="a"
+        :theme="theme"
         :index="(innerPage.pageNumber - 1) * innerPage.pageSize + index">
       </article-item>
     </div>
@@ -43,7 +44,8 @@ export default {
   props: {
     offset: { type: Number, default: 100 },
     page: { type: Object, default() { return {} } },
-    query: { type: Object, default() { return {} } }
+    query: { type: Object, default() { return {} } },
+    theme: {type: String, default: 'light'}
   },
   data() {
     return {

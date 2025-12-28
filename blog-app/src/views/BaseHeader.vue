@@ -1,392 +1,274 @@
 <template>
-  <header class="site-header no-select" id="header" @mouseenter="ShowHeader" @mouseleave="HideHeader">
-	  <div class="header-header">
-		  <!--左边-->
-		  <div class="header-left">
-				<ul>
-					<li class="header-left-li" @click="home"><i  class="el-icon-edit"></i>{{this.$myName}}<div class="XuanZhuanZi">の</div>Blog</li>
-				</ul>
-		  </div>
-		  <!--右边-->
-		  <div class="header-right  menu-transition menu-transition-start">
+  <div class="header-monitor">
+    <div class="header-wrapper" ref="headerWrapper">
+      <div class="header-content">
 
-			    <div class="header-container">
-			      <nav class="header-nav">
-			        <ul>
-			          <li class="header-right-li" @click="home">首页</li>
-			          <li class="header-right-li" @click="archives">Archives</li>
-			          <li class="header-right-li" @click="tag">标签</li>
+        <div class="flex-header">
+          <div class="logo-box">
+            <router-link to="/" class="header-logo">
+              <span class="logo-text" ref="logoText">{{ $myName || 'Blog' }}</span>
+            </router-link>
+          </div>
 
-			          <li class="header-right-li" @click="nav">导航</li>
-			          <!-- <li class="header-right-li" @click="log">日志</li> -->
-			          <li class="header-right-li" @click="write">文章</li>
-			          <li class="header-right-li" @click="resume">关于</li>
-			          <li class="header-right-li"  v-if="!user.login&&mac" @click="login">秘密社</li>
-			          <li class="header-right-li"  v-if="user.login&&mac" @click="logout">退出</li>
-			        </ul>
-			      </nav>
-			    </div>
+          <div class="nav-box hidden-xs-only">
+            <ul class="nav-list">
+              <li v-for="(item, index) in navItems"
+                  :key="item.path"
+                  :class="{ active: activeIndex === item.path }"
+                  @mouseenter="onNavEnter($event)"
+                  @mouseleave="onNavLeave($event)">
 
-		  </div>
+                <router-link :to="item.path">
+                  <i :class="[item.icon, 'nav-icon']"></i>
+                  <span class="nav-text">{{ item.name }}</span>
+                </router-link>
+              </li>
 
+              <li v-if="user.login" class="write-btn"
+                  @mouseenter="onNavEnter($event)"
+                  @mouseleave="onNavLeave($event)">
+                <router-link to="/write">
+                  <i class="el-icon-edit-outline nav-icon"></i>
+                  <span class="nav-text">寫文章</span>
+                </router-link>
+              </li>
+            </ul>
+          </div>
 
+          <div class="user-box">
+            <template v-if="!user.login">
+              <span class="auth-btn" @click="login">登入</span>
+              <span class="auth-btn" @click="register">註冊</span>
+            </template>
+            <template v-else>
+              <el-dropdown trigger="click">
+                <div class="user-info">
+                  <el-avatar :size="36" :src="user.avatar || require('@/assets/img/default_avatar.png')"></el-avatar>
+                </div>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click.native="logout">退出登錄</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+          </div>
+        </div>
 
-	</div>
-
-
-
-
-  </header>
-
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { gsap } from 'gsap'
 
-import {getToken} from '@/request/token.js'
-import {getMAC} from '@/api/article'
-import $ from 'jquery'
-  export default {
-    name: 'BaseHeader',
-    props: {
-      activeIndex: String,
-      simple: {
-        type: Boolean,
-        default: false
+export default {
+  name: 'BaseHeader',
+  props: {
+    activeIndex: { type: String, default: '/' },
+    simple: { type: Boolean, default: false }
+  },
+  data() {
+    return {
+      isScrolled: false,
+      ticking: false,
+      navItems: [
+        { name: '首頁', path: '/', icon: 'el-icon-s-home' },
+        { name: '文章', path: '/archives', icon: 'el-icon-document' },
+        { name: '分類', path: '/category/all', icon: 'el-icon-menu' },
+        { name: '標籤', path: '/tag/all', icon: 'el-icon-price-tag' },
+        { name: '導航', path: '/nav', icon: 'el-icon-compass' },
+        { name: '留言板', path: '/messageBoard', icon: 'el-icon-chat-dot-round' }
+      ]
+    }
+  },
+  computed: {
+    user() {
+      let login = this.$store.state.account ? this.$store.state.account.length != 0 : false
+      let avatar = this.$store.state.avatar
+      let nickname = this.$store.state.name
+      return { login, avatar, nickname }
+    }
+  },
+  watch: {
+    isScrolled(newVal) {
+      newVal ? this.animateToCapsule() : this.animateToFull()
+    }
+  },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll)
+    this.animateToFull(true)
+  },
+  destroyed() {
+    window.removeEventListener('scroll', this.handleScroll)
+  },
+  methods: {
+    // --- 修復後的滑鼠懸停特效 ---
+    onNavEnter(e) {
+      const target = e.currentTarget
+      const icon = target.querySelector('.nav-icon')
+      const text = target.querySelector('.nav-text')
+
+      // [關鍵修復] 1. 強制停止該元素上正在進行的所有動畫，防止堆疊
+      gsap.killTweensOf(icon)
+      gsap.killTweensOf(text)
+
+      // Icon 特效
+      gsap.to(icon, {
+        scale: 1.2,
+        rotation: 15,
+        color: '#409EFF',
+        duration: 0.4,
+        ease: 'back.out(2.5)',
+        overwrite: true // [關鍵修復] 2. 確保覆蓋之前的狀態
+      })
+
+      // 文字特效
+      gsap.to(text, {
+        y: -3,
+        color: '#409EFF',
+        textShadow: '0 0 8px rgba(64, 158, 255, 0.8)',
+        fontWeight: 'bold',
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: true
+      })
+    },
+
+    onNavLeave(e) {
+      const target = e.currentTarget
+      const icon = target.querySelector('.nav-icon')
+      const text = target.querySelector('.nav-text')
+
+      // [關鍵修復] 同樣要殺死動畫，防止快速移出時卡住
+      gsap.killTweensOf(icon)
+      gsap.killTweensOf(text)
+
+      // 恢復原狀
+      gsap.to(icon, {
+        scale: 1,
+        rotation: 0,
+        color: '#555',
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: true
+      })
+
+      gsap.to(text, {
+        y: 0,
+        color: '#555',
+        textShadow: 'none',
+        fontWeight: 'normal',
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: true
+      })
+    },
+
+    // --- 滾動監聽 (不變) ---
+    handleScroll() {
+      if (!this.ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+          const shouldScroll = scrollTop > 60
+          if (this.isScrolled !== shouldScroll) {
+            this.isScrolled = shouldScroll
+          }
+          this.ticking = false
+        })
+        this.ticking = true
       }
     },
-	mounted() {
-
-		this.getMAC()
-		/* window.addEventListener('scroll', this.handleScroll, true); */
-
-	},
-    data() {
-      return {
-		  drawer: false,
-		  mac:false,
-	  }
+    animateToCapsule() {
+      gsap.to(this.$refs.headerWrapper, {
+        top: 15,
+        width: '95%',
+        maxWidth: '1200px',
+        borderRadius: 50,
+        backgroundColor: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(15px)',
+        border: '1px solid rgba(255, 255, 255, 0.5)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        duration: 0.6,
+        ease: 'power3.out'
+      })
+      gsap.to(this.$refs.logoText, {
+        scale: 0.9,
+        transformOrigin: 'left center',
+        color: '#409EFF',
+        duration: 0.6,
+        ease: 'power3.out'
+      })
     },
-    computed: {
-      user() {
-        let login = this.$store.state.account.length != 0
-        let avatar = this.$store.state.avatar
-		let id=this.$store.state.id
-        return {
-          login, avatar,id
+    animateToFull(immediate = false) {
+      const duration = immediate ? 0 : 0.6
+      gsap.to(this.$refs.headerWrapper, {
+        top: 0,
+        width: '100%',
+        maxWidth: '100%',
+        borderRadius: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: 'none',
+        duration: duration,
+        ease: 'power3.out'
+      })
+      gsap.to(this.$refs.logoText, {
+        scale: 1,
+        transformOrigin: 'left center',
+        color: '#409EFF',
+        duration: duration,
+        ease: 'power3.out'
+      })
+    },
+    logout() {
+      let that = this
+      this.$store.dispatch('logout').then(() => {
+        this.$router.push({path: '/'})
+      }).catch((error) => {
+        if (error !== 'error') {
+          that.$message({message: error, type: 'error', showClose: true});
         }
-      },
+      })
     },
-    methods: {
-		open(){
-			if ($('#mo-nav').is('.open')) {
-				$("#mo-nav").addClass("yyc");
-				$("#mo-nav").removeClass("open");
-				//$(".unfold").css("display","block")
-
-			}else{
-				$("#mo-nav").removeClass("yyc");
-				$("#mo-nav").addClass("open");
-				//$(".unfold").css("display","none")
-
-			}
-		},
-	  handleScroll() {
-		  let top=document.documentElement.scrollTop;
-		  if(top==0){
-			$(".site-header").removeClass("yya");
-			$(".header-right").removeClass("menu-transition");
-
-		  }else{
-			$(".site-header").addClass("yya");
-			$(".header-right").addClass("menu-transition");
-		  }
-	  },
-	  //只有固定mac的才可以有秘密社权限
-		getMAC(){
-			  getMAC().then((data => {
-				this.mac=data.data
-				console.debug('访问者:'+data.data)
-			  })).catch(error => {
-				  if (error !== 'error') {
-					that.$message({type: 'error', message: 'mac!', showClose: true})
-				  }
-				})
-
-		},
-      logout() {
-        let that = this
-        this.$store.dispatch('logout').then(() => {
-          this.$router.push({path: '/'})
-        }).catch((error) => {
-          if (error !== 'error') {
-            that.$message({message: error, type: 'error', showClose: true});
-          }
-        })
-      },
-	  home(){
-		this.$router.push({path: `/`})
-	  },
-	  archives(){
-		  this.$router.push({path: `/archives`})
-	  },
-	  tag(){
-		  this.$router.push({path: `/tag/all`})
-	  },
-	  nav(){
-		  this.$router.push({path: `/nav`})
-	  },
-	  write(){
-		  this.$router.push({path: `/write`})
-	  },
-	  resume(){
-		  this.$router.push({path: `/Resume`})
-	  },
-	  log(){
-		  this.$router.push({path: `/log`})
-	  },
-	  login(){
-
-		  this.$router.push({path: `/login`})
-	  },
-	  ShowHeader(){
-		 //悬浮
-		 let top=document.documentElement.scrollTop;
-		 if(top==0){$(".header-right").addClass("menu-transition");}
-
-	  },
-	  HideHeader(){
-		 //悬浮离开
-		 let top=document.documentElement.scrollTop;
-		 if(top==0){
-			 $(".header-right").removeClass("menu-transition");
-
-		 }
-	  }
-
-    }
+    login() { this.$router.push({path: '/login'}) },
+    register() { this.$router.push({path: '/register'}) },
+    nav() { this.$router.push({ path: `/nav` }) },
   }
+}
 </script>
 
-<style>
-@import url("https://at.alicdn.com/t/font_3295543_z56pra7uql.css");
-.open {
-	width: 50%;
-	height: 100vh;
-	background-color: #FFFFFF;
-}
-.yyc{
-	display: none;
-}
-.nav-opne{
-	display: none;
-}
-header {
-	position: fixed;
-	height: 60px;
-	z-index: 1024;
-	min-width: 100%;
-	/* box-shadow: 0 2px 3px hsla(0, 0%, 7%, .1), 0 0 0 1px hsla(0, 0%, 7%, .1); */
-}
-.unfold{
-	display: none;
-}
-
-
-
-.yya {
-    position: fixed;
-    left: 0;
-    box-shadow: 0 1px 40px -8px rgb(0 0 0 / 50%);
-	background: rgba(255, 255, 255, .95);
-}
-
-
-
-.site-header {
-    width: 100%;
-    height: 75px;
-    -webkit-transition: all .4s ease;
-    transition: all .4s ease;
-    position: fixed;
-    z-index: 1024;
-    top: 0;
-}
-.site-header:hover{
-	background:rgba(255, 255, 255, .95);
-}
-.no-select {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-/****/
-.header-header{
-
-}
-.header-left{
-	float: left;
-	position: relative;
-	height: 75px;
-	line-height: 75px;
-	margin-left: 40px;
-}
-.header-left-li{
-	color: #647d98;
-	list-style-type: none;
-	cursor:pointer;
-	font-size: 20px;
-	font-family: 'Mochiy Pop One', sans-serif;
-}
-
-.site-name{
-	font-size: 18px;
-	margin-right: 30px;
-}
-.header-right{
-	float: right;
-	margin-right: 30px;
-	position: relative;
-	height: 75px;
-	line-height: 75px;
-}
-.header-right-list{
-	list-style-type: none;
-}
-.header-right-li{
-	float:left;
-	margin-right: 30px;
-	font-size: 18px;
-	cursor:pointer;
-}
-.menu-transition-start {
-    transform: translateX(5%);
-    opacity: 0;
-    transition: all .5s;
-}
-.menu-transition {
-    transform: translateX(0);
-    opacity: 1;
-    transition: all .5s;
-}
-
-.XuanZhuanZi{
-	display: inline-block;
-	 -webkit-transition-property: -webkit-transform;
-	    -webkit-transition-duration: 1s;
-	    -moz-transition-property: -moz-transform;
-	    -moz-transition-duration: 1s;
-	    -webkit-animation: rotate 3s linear infinite;
-	    -moz-animation: rotate 3s linear infinite;
-	    -o-animation: rotate 3s linear infinite;
-	    animation: rotate 3s linear infinite;
-
-}
-/*导航栏  */
-.header-nav {
-
-}
-.header-nav ul li {
-  list-style: none;
-  display: inline-block;
-
-  font-size: 18px;
-  font-weight: 500;
-  color: #777;
-  cursor: pointer;
-  position: relative;
-  z-index: 2;
-  transition: color 0.5s;
-}
-.header-nav ul li::after {
-  content: '';
-  background: #f44566;
+<style scoped>
+/* 樣式保持不變，為了完整性我列在下面 */
+.header-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  height: 60px;
   width: 100%;
-  height: 60%;
-  border-radius: 30px;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  opacity: 0;
-  transition: top 0.5s,opacity 0.5s;
+  z-index: 1024;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  will-change: width, top, border-radius, background, transform;
 }
-.header-nav ul li:hover{
-  color: #fff;
-}
-.header-nav ul li:hover::after{
-  top: 50%;
-  opacity: 1;
-}
-
-/*  */
-@-webkit-keyframes rotate{from{-webkit-transform: rotate(0deg)}
-    to{-webkit-transform: rotate(360deg)}
-}
-@-moz-keyframes rotate{from{-moz-transform: rotate(0deg)}
-    to{-moz-transform: rotate(359deg)}
-}
-@-o-keyframes rotate{from{-o-transform: rotate(0deg)}
-    to{-o-transform: rotate(359deg)}
-}
-@keyframes rotate{from{transform: rotate(0deg)}
-    to{transform: rotate(359deg)}
-}
-
-@media only screen and (max-width:800px) {
-
-	.header-left{
-		float: right;
-		margin-right: 40px;
-		margin-left: 0px;
-
-	}
-	.header-right{
-		float: left;
-		position: relative;
-		font-weight: 20;
-
-	}
-	.header-right-li{
-		cursor:pointer;
-	}
-	.el-icon-s-unfold{
-		font-size: 35px;
-	}
-	.header-left-li{
-		font-size: 18px;
-	}
-
-	.unfold{
-		display:block ;
-		float: left;
-		line-height: 75px;
-	}
-	.el-button--primary{
-		background-color: #000000!important;
-	}
-	.el-button--primary:hover{
-		/* background-color: #aaff7f!important; */
-	}
-	.el-button--primary:active{
-		background-color: #ffaa7f!important;
-	}
-
-}
-@media only screen and (max-width:300px) {
-	.header-left{
-		display: none;
-	}
-
-
-}
-
-
-
-
-
-
+.header-content { height: 100%; padding: 0 25px; width: 100%; box-sizing: border-box; }
+.flex-header { display: flex; justify-content: space-between; align-items: center; height: 100%; width: 100%; }
+.logo-box { flex-shrink: 0; }
+.header-logo { text-decoration: none; display: flex; align-items: center; }
+.logo-text { font-size: 24px; font-weight: 700; color: #409EFF; font-family: 'Righteous', sans-serif; letter-spacing: 1px; display: inline-block; text-shadow: 0 2px 5px rgba(64, 158, 255, 0.2); }
+.nav-box { flex-grow: 1; display: flex; justify-content: center; }
+.nav-list { display: flex; list-style: none; padding: 0; margin: 0; }
+.nav-list li { margin: 0 15px; position: relative; cursor: pointer; }
+.nav-list li a { display: flex; align-items: center; color: #555; font-size: 15px; font-weight: 600; text-decoration: none; padding: 8px 5px; }
+.nav-icon { margin-right: 4px; font-size: 16px; color: #888; display: inline-block; transform-origin: center center; }
+.nav-text { display: inline-block; position: relative; }
+.nav-list li::after { display: none; }
+.write-btn a { display: flex; align-items: center; color: #555; font-size: 15px; font-weight: 600; text-decoration: none; padding: 8px 5px; }
+.user-box { flex-shrink: 0; display: flex; justify-content: flex-end; align-items: center; }
+.auth-btn { cursor: pointer; margin-left: 15px; color: #666; font-weight: 600; transition: color 0.3s; }
+.auth-btn:hover { color: #409EFF; }
 </style>
