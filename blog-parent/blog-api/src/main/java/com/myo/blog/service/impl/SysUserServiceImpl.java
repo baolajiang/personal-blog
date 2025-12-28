@@ -16,7 +16,7 @@ import com.myo.blog.entity.Result;
 import com.myo.blog.entity.UserVo;
 import com.myo.blog.utils.HttpContextUtils;
 import com.myo.blog.utils.IpUtils;
-
+import org.springframework.context.annotation.Lazy;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +38,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
     @Autowired
+    @Lazy  // 2. 添加这个注解，打破循环依赖
     private LoginService loginService;
 
     @Override

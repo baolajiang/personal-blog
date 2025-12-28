@@ -7,7 +7,7 @@ import org.iherus.codegen.qrcode.QrcodeConfig;
 import org.iherus.codegen.qrcode.QreyesFormat;
 import org.iherus.codegen.qrcode.SimpleQrcodeGenerator;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.Base64;
 

@@ -25,9 +25,10 @@ import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -218,6 +219,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public Result publish(ArticleParam articleParam) {
         //此接口 要加入到登录拦截当中
         SysUser sysUser = UserThreadLocal.get();
@@ -261,6 +263,12 @@ public class ArticleServiceImpl implements ArticleService {
         article.setId(Long.parseLong(String.valueOf(articlesId)));
         //没有article.setId的活会自动添加
         this.articleMapper.insert(article);
+
+        // ==================【测试开始：插入这段代码】==================
+/*        if (true) {
+            throw new RuntimeException("===> 我是故意来捣乱的异常，测试回滚！ <===");
+        }*/
+        // ==================【测试结束】==================
 
         //tag
         List<TagVo> tags = articleParam.getTags();

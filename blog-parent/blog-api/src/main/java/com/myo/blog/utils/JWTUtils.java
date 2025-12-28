@@ -1,46 +1,58 @@
 package com.myo.blog.utils;
 
-import io.jsonwebtoken.Jwt;
-import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JWTUtils {
 
-    private static final String jwtToken = "tangmengxi2693398551!@#$$";//jwtToken
+    // 注意：JJWT 0.10+ 强制要求 HS256 的密钥至少 32 个字符 (256 bits)
+    // 我帮您补全了长度，确保不会报 WeakKeyException
+    private static final String jwtToken = "tangmengxi2693398551!@#$$tangmengxi2693398551!@#$$";
+
+    // 创建 Key 对象
+    private static SecretKey getKey() {
+        return Keys.hmacShaKeyFor(jwtToken.getBytes(StandardCharsets.UTF_8));
+    }
 
     public static String createToken(Long userId){
         Map<String,Object> claims = new HashMap<>();
         claims.put("userId",userId);
-        JwtBuilder jwtBuilder = Jwts.builder()
-                .signWith(SignatureAlgorithm.HS256, jwtToken) // 签发算法，秘钥为jwtToken
-                .setClaims(claims) // body数据，要唯一，自行设置
-                .setIssuedAt(new Date()) // 设置签发时间
-                .setExpiration(new Date(System.currentTimeMillis() + 100L * 365 * 24 * 60 * 60 * 1000));// 100 年的有效时间
-        String token = jwtBuilder.compact();
-        return token;
+
+        // JJWT 0.12.x 写法
+        return Jwts.builder()
+                .signWith(getKey(), Jwts.SIG.HS256) // 使用 Key 对象签名
+                .claims(claims) // 设置自定义载荷
+                .issuedAt(new Date()) // 设置签发时间
+                .expiration(new Date(System.currentTimeMillis() + 100L * 365 * 24 * 60 * 60 * 1000)) // 100 年的有效时间
+                .compact();
     }
 
     public static Map<String, Object> checkToken(String token){
         try {
-            Jwt parse = Jwts.parser().setSigningKey(jwtToken).parse(token);
-            return (Map<String, Object>) parse.getBody();
-        }catch (Exception e){
+            // JJWT 0.12.x 写法
+            Claims claims = Jwts.parser()
+                    .verifyWith(getKey()) // 验证签名
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload(); // 获取载荷
+            return claims;
+        } catch (Exception e){
             e.printStackTrace();
         }
         return null;
-
     }
 
     public static void main(String[] args) {
         String token = JWTUtils.createToken(100L);
-
+        System.out.println("生成的 Token: " + token);
         Map<String, Object> map = JWTUtils.checkToken(token);
-
+        System.out.println("解析的结果: " + map);
     }
-
 }

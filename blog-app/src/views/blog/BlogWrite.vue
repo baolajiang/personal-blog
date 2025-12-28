@@ -124,7 +124,7 @@
         rules: {
           summary: [
             {required: true, message: '请输入摘要', trigger: 'blur'},
-            {max: 80, message: '不能大于80个字符', trigger: 'blur'}
+            {max: 100, message: '不能大于100个字符', trigger: 'blur'}
           ],
           category: [
             {required: true, message: '请选择文章分类', trigger: 'change'}
@@ -164,7 +164,7 @@
           return
         }
 
-        if (this.articleForm.title.length > 30) {
+        if (this.articleForm.title.length > 35) {
           this.$message({message: '标题不能大于30个字符', type: 'warning', showClose: true})
           return
         }
