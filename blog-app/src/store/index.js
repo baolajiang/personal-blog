@@ -12,6 +12,14 @@ export default new Vuex.Store({
     name: '',
     avatar: '',
     token: getToken(),
+    // 游客数据初始值（空的）
+    guest: {
+      uuid: '',
+      nickname: '旅人',
+      email: '',
+      website: '',
+      avatar: ''
+    }
   },
   mutations: {
     SET_TOKEN: (state, token) => {
@@ -28,6 +36,54 @@ export default new Vuex.Store({
     },
     SET_ID: (state, id) => {
       state.id = id
+    },
+    // 🔥 核心逻辑：初始化游客身份
+    INIT_GUEST(state) {
+      // 1. 先尝试从浏览器硬盘（localStorage）里拿数据
+      const stored = localStorage.getItem('LUNA_GUEST_INFO');
+
+      if (stored) {
+        // ✅ A情况：找到了！是老访客
+        // 把硬盘里的数据解析出来，放回 Vuex 内存里
+        try {
+          state.guest = JSON.parse(stored);
+          console.log('欢迎回来，老朋友：', state.guest.nickname);
+        } catch (e) {
+          // 如果数据坏了，就重置
+          localStorage.removeItem('LUNA_GUEST_INFO');
+        }
+      }
+
+      // ❌ B情况：没找到（stored 为空），或者数据坏了
+      // 说明是第一次来，或者清空了缓存
+      if (!state.guest.uuid) {
+        console.log('是新朋友，正在生成身份...');
+        const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+        const suffix = uuid.substring(0, 4).toUpperCase();
+
+        // 生成新数据
+        const newGuest = {
+          uuid: uuid,
+          nickname: `旅人${suffix}`,
+          email: '',
+          website: '',
+          avatar: ''
+        };
+
+        // 1. 存入 Vuex (立刻显示)
+        state.guest = newGuest;
+        // 2. 存入 LocalStorage (永久保存)
+        localStorage.setItem('LUNA_GUEST_INFO', JSON.stringify(newGuest));
+      }
+    },
+
+    // 更新信息时，也要同步保存到 LocalStorage
+    UPDATE_GUEST(state, payload) {
+      state.guest = { ...state.guest, ...payload };
+      localStorage.setItem('LUNA_GUEST_INFO', JSON.stringify(state.guest));
     }
   },
   actions: {
