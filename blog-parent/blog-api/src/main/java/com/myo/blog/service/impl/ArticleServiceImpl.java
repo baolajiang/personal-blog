@@ -110,7 +110,7 @@ public class ArticleServiceImpl implements ArticleService {
      */
     @Override
     public Result listArticleCount(String token) {
-        // 在 ArticleServiceImpl 中建议修改：
+
         boolean isToken = false;
         if (StringUtils.isNotBlank(token) && !"undefined".equals(token)) {
             // 务必验证 Token 是否合法
@@ -181,7 +181,7 @@ public class ArticleServiceImpl implements ArticleService {
             return Result.fail(404, "文章不存在");
         }
 
-        // 在 ArticleServiceImpl 中建议修改：
+
         boolean isToken = false;
         if (StringUtils.isNotBlank(token) && !"undefined".equals(token)) {
             // 务必验证 Token 是否合法
