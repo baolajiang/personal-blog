@@ -9,7 +9,7 @@
           <div class="logo-box">
             <router-link to="/" class="header-logo" @mouseenter.native="onLogoEnter" @mouseleave.native="onLogoLeave" @click.native="closeMobileMenu">
               <span class="moon-icon" ref="moonIcon">☾</span>
-              <span class="logo-text" ref="logoText">{{ $myName || 'Luna Blog' }}</span>
+              <span class="logo-text" ref="logoText">{{ $myName || '月之别邸' }}</span>
               <span class="sakura-icon" ref="sakuraIcon">❀</span>
             </router-link>
           </div>
@@ -226,6 +226,7 @@ export default {
         { name: '分類', en: 'Category', path: '/category/all', icon: 'el-icon-menu' },
         { name: '標籤', en: 'Tags', path: '/tag/all', icon: 'el-icon-price-tag' },
         { name: '友鏈', en: 'Links', path: '/nav', icon: 'el-icon-compass' },
+        { name: '關於', en: 'Resume', path: '/Resume', icon: 'el-icon-info' },
         { name: '留言', en: 'Guestbook', path: '/messageBoard', icon: 'el-icon-chat-dot-round' }
       ]
     }

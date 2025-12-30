@@ -44,7 +44,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 
 export default {
   name: 'cardMe',
@@ -65,7 +64,7 @@ export default {
     },
     showDazi() {
       let that = this;
-      axios.get('https://v1.hitokoto.cn/')
+      this.$axios.get('https://v1.hitokoto.cn/')
         .then(function (data) {
           that.hitokoto = data.data.hitokoto;
           that.from = data.data.from;

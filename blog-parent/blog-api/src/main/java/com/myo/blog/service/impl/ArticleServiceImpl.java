@@ -2,6 +2,7 @@ package com.myo.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.myo.blog.dao.dos.Archives;
 import com.myo.blog.dao.mapper.*;
@@ -54,6 +55,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Autowired
     private CategoryMapper categoryMapper;
 
+
+
     /**
      * 查詢文章列表 (分頁)
      * 1. 分頁查詢資料庫表
@@ -69,7 +72,11 @@ public class ArticleServiceImpl implements ArticleService {
         Page<Article> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
 
         // 2. 判斷是否有 Token (是否登入)
-        boolean isToken = !"undefined".equals(token);
+        boolean isToken = false;
+        if (StringUtils.isNotBlank(token) && !"undefined".equals(token)) {
+            // 务必验证 Token 是否合法
+            isToken = JWTUtils.checkToken(token) != null;
+        }
 
         // 3. 呼叫 Mapper 進行自定義的分頁查詢 (支持歸檔、標籤、分類篩選)
         IPage<Article> articleIPage = articleMapper.listArticle(
@@ -103,7 +110,12 @@ public class ArticleServiceImpl implements ArticleService {
      */
     @Override
     public Result listArticleCount(String token) {
-        boolean isToken = !"undefined".equals(token);
+        // 在 ArticleServiceImpl 中建议修改：
+        boolean isToken = false;
+        if (StringUtils.isNotBlank(token) && !"undefined".equals(token)) {
+            // 务必验证 Token 是否合法
+            isToken = JWTUtils.checkToken(token) != null;
+        }
         Integer count = articleMapper.listArticleCount(isToken);
         return Result.success(count);
     }
@@ -169,7 +181,12 @@ public class ArticleServiceImpl implements ArticleService {
             return Result.fail(404, "文章不存在");
         }
 
-        boolean isToken = !"undefined".equals(token);
+        // 在 ArticleServiceImpl 中建议修改：
+        boolean isToken = false;
+        if (StringUtils.isNotBlank(token) && !"undefined".equals(token)) {
+            // 务必验证 Token 是否合法
+            isToken = JWTUtils.checkToken(token) != null;
+        }
 
         // 1. 隱藏文章判斷 (viewKeys=2 為隱藏)
         // 【修復 NPE】 增加 null 判斷，避免 ViewKeys 為 null 時拆箱報錯
@@ -220,77 +237,68 @@ public class ArticleServiceImpl implements ArticleService {
      * 發布文章
      */
     @Override
-    @Transactional // 開啟事務，保證資料一致性 (Tag, Body, Article 必須同時成功)
+    @Transactional
     public Result publish(ArticleParam articleParam) {
-        // 獲取當前登入用戶
-        SysUser sysUser = UserThreadLocal.get();
-
-        // 1. 構建 Article 對象
+        // 1. 处理文章基本信息
         Article article = new Article();
-        article.setAuthorId(sysUser.getId());
-        article.setWeight(Article.Article_Common);
-        article.setViewCounts(0);
-        article.setTitle(articleParam.getTitle());
-        article.setSummary(articleParam.getSummary());
+        BeanUtils.copyProperties(articleParam, article);
+
+        // 删除危险的ID生成逻辑
+        // LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        // queryWrapper.select(Article::getId);
+        // queryWrapper.last("limit 1");
+        // queryWrapper.orderByDesc(Article::getCreateDate);
+        // List<Article> articles = articleMapper.selectList(queryWrapper);
+        // long id = 0;
+        // if (articles.size() != 0) {
+        //     id = articles.get(0).getId();
+        // }
+        // article.setId(id + 1); // 删除这行
+
+        // 设置其他属性
         article.setCommentCounts(0);
+        article.setViewCounts(0);
+        article.setWeight(Article.Article_Common);
         article.setCreateDate(System.currentTimeMillis());
         article.setCategoryId(Long.parseLong(articleParam.getCategory().getId()));
-
-        // 獲取最新文章 ID (注意：生產環境建議用雪花算法或資料庫自增，這裡沿用原邏輯)
-        LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.select(Article::getId);
-        queryWrapper.last("limit 1");
-        queryWrapper.orderByDesc(Article::getCreateDate);
-        List<Article> articles = articleMapper.selectList(queryWrapper);
-        long id = 0;
-        if (articles.size() != 0) {
-            id = articles.get(0).getId();
-        }
-
-        // 設定封面
         article.setCover(articleParam.getCover());
-        // 設定 ID
-        article.setId(id + 1);
+
+
+
+
+        // 直接插入，MyBatis Plus会自动使用雪花算法生成ID
         this.articleMapper.insert(article);
 
-        // 2. 處理標籤 (關聯表 article_tag)
+        // 2. 处理标签关联
         List<TagVo> tags = articleParam.getTags();
         if (tags != null) {
             for (TagVo tag : tags) {
                 ArticleTag articleTag = new ArticleTag();
                 articleTag.setTagId(Long.parseLong(tag.getId()));
-                articleTag.setArticleId(article.getId());
+                articleTag.setArticleId(article.getId()); // 使用数据库生成的ID
                 articleTagMapper.insert(articleTag);
             }
         }
 
-        // 3. 處理文章內容 (表 article_body)
+        // 3. 处理文章内容
         ArticleBody articleBody = new ArticleBody();
         articleBody.setArticleId(article.getId());
         articleBody.setContent(articleParam.getBody().getContent());
         articleBody.setContentHtml(articleParam.getBody().getContentHtml());
 
-        // 獲取最新 Body ID
-        LambdaQueryWrapper<ArticleBody> queryWrapper2 = new LambdaQueryWrapper<>();
-        queryWrapper2.select(ArticleBody::getId);
-        queryWrapper2.last("limit 1");
-        queryWrapper2.orderByDesc(ArticleBody::getId);
-        List<ArticleBody> articleBodyList = articleBodyMapper.selectList(queryWrapper2);
-        long id2 = 0;
-        if (articleBodyList.size() != 0) {
-            id2 = articleBodyList.get(0).getId();
-        }
-        articleBody.setId(id2 + 1);
+        // 文章内容也会自动使用雪花算法生成ID
         articleBodyMapper.insert(articleBody);
 
-        // 4. 回填 BodyID 到 Article 表
+        // 4. 回填BodyID到Article表
         article.setBodyId(articleBody.getId());
         articleMapper.updateById(article);
 
         Map<String, String> map = new HashMap<>();
         map.put("id", article.getId().toString());
+
         return Result.success(map);
     }
+
 
     /**
      * 重載方法：簡化版 copyList (兼容舊代碼調用，不需要 token 的場景)
@@ -461,4 +469,6 @@ public class ArticleServiceImpl implements ArticleService {
         articleBodyVo.setContent(articleBody.getContent());
         return articleBodyVo;
     }
+
+
 }

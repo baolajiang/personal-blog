@@ -1,7 +1,7 @@
 
 import Vue from 'vue'
 import App from './App'
-import axios from 'axios'
+import request from './request' // 引你封装好的 service
 import router from './router'
 import store from './store'
 import 'default-passive-events'
@@ -27,9 +27,10 @@ import 'nprogress/nprogress.css' //进度条样式
 Vue.use(animate)
 
 Vue.config.productionTip = false
-Vue.prototype.$axios=axios
+// 将自定义request挂载到Vue原型，替代原生axios
+Vue.prototype.$axios = request
 // 设置全局变量
-Vue.prototype.$myName = '寶菈';
+Vue.prototype.$myName = '月之别邸';
 
 Vue.use(ElementUI)
 Object.defineProperty(Vue.prototype, '$_', { value: lodash })

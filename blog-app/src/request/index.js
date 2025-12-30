@@ -12,7 +12,8 @@ const service = axios.create({
 service.interceptors.request.use(config => {
 
   if (store.state.token) {
-    config.headers['Oauth-Token'] = getToken()
+
+    config.headers['Authorization'] = getToken()
   }
   return config
 }, error => {
@@ -53,7 +54,7 @@ service.interceptors.response.use(
 
       //70001 权限认证错误
       if (res.code === 70001) {
-        
+
         Message({
           type: 'warning',
           showClose: true,

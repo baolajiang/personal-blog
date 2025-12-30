@@ -4,6 +4,7 @@
     <el-container class="">
       <el-main class="me-main">
         <el-alert
+          class="message-alert"
           title="不能留言哦。。。。。。。。。。。"
           type="warning"
           center
@@ -32,10 +33,16 @@
 
 <style scoped>
   .me-message {
+    height: 100vh;
+    width: 100%;
   }
 
   .el-container {
     width: 700px;
+  }
+  .message-alert{
+    margin-top: 20px;
+    align-content: center;
   }
 
   .me-main {

@@ -103,7 +103,13 @@ export default {
     });
   },
   methods: {
-    view(id) { this.$router.push({ path: `/view/${id}` }) },
+    view(id) {  // 判断是否为短ID，如果是短ID则使用短ID路由
+      if (/^\d{1,6}$/.test(id)) {
+        this.$router.push({ path: `/view/${id}` })
+      } else {
+        // 长ID保持原路由
+        this.$router.push({ path: `/view/${id}` })
+      } },
     Imgview(index) { return "https://www.loliapi.com/acg/?uuid=" + (index + 900) },
 
     setHoverLevel(level) {
