@@ -102,16 +102,28 @@
         }
         publishComment(that.reply,this.$store.state.token).then(data => {
           if(data.success){
-            that.$message({type: 'success', message: '评论成功', showClose: true})
+            that.$myMessage({
+              type: 'success',
+              content: '评论成功',
+              duration: 3000
+            })
             //调用父类方法实现刷新
             that.$emit('commentCountsIncrement')
             that.showComment(that.commentShowIndex)
           }else{
-             that.$message({type: 'error', message: data.msg, showClose: true})
+             that.$myMessage({
+               content: data.msg,
+               type: 'error',
+               duration: 3000
+             })
           }
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '评论失败', showClose: true})
+            that.$myMessage({
+              type: 'error',
+              content: '评论失败',
+              duration: 3000
+            })
           }
         })
 

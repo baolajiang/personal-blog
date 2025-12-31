@@ -140,7 +140,7 @@ export default {
         gsap.to(this.$refs.moon, { rotation: 0, opacity: 0.2, duration: 1, overwrite: true });
         gsap.to(this.$refs.sakuraContainer, { y: 0, opacity: 0.4, duration: 1, overwrite: true });
 
-        // ★ 颜色复原：清除 GSAP 样式，回归 CSS 定义的 theme 颜色
+        // ★ 颜色复原：清除 GSAP 样式， CSS 定义的 theme 颜色
         gsap.to(this.$refs.title, { color: "var(--text-main)", x: 0, duration: 0.3, overwrite: true });
         gsap.to(this.$refs.btn, { color: "var(--text-sub)", x: 0, duration: 0.3, overwrite: true });
 

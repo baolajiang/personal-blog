@@ -273,7 +273,19 @@ export default {
     },
   },
   watch: {
-    isScrolled(newVal) { if (!this.isMobileMenuOpen) { newVal ? this.animateToCapsule() : this.animateToFull() } }
+    // 监听滚动
+    isScrolled(newVal) { if (!this.isMobileMenuOpen) { newVal ? this.animateToCapsule() : this.animateToFull() } },
+    // 监听面板开关状态
+    activePanel(newVal) {
+      // 当面板关闭 (newVal === null) 时，重置 Tab
+      if (!newVal) {
+        // 等待 CSS 动画（pop-fade）完全结束后再重置，避免用户看到 Tab 跳变的瞬间
+        // 这里的 300ms 对应 CSS 中的 transition: all 0.3s
+        setTimeout(() => {
+          this.guestTab = 'info';
+        }, 300);
+      }
+    }
   },
   mounted() {
     window.addEventListener('scroll', this.handleScroll);
@@ -301,26 +313,66 @@ export default {
     },
     closeEditModal() { this.showEditModal = false; },
     confirmEdit() {
-      if (this.editField === 'email' && this.editValue && !/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(this.editValue)) {
-        this.$message.error('郵箱格式不正確');
+      // 1. 去除首尾空格
+      let value = this.editValue.trim();
+
+      if (!value) {
+        // 如果允许清空（比如不想填了），直接保存空字符串并关闭
+        // 如果必填，可以在这里加 return this.$message.warning('內容不能為空');
+        this.saveAndClose(value);
         return;
       }
 
-      //  提交到 Store 进行更新和保存
-      this.$store.commit('UPDATE_GUEST', {
-        [this.editField]: this.editValue
-      });
+      // 2. 针对不同字段进行正则校验
+      if (this.editField === 'email') {
+        // 更严格的邮箱正则
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (!emailRegex.test(value)) {
 
-      this.$message.success('更新成功');
+          this.$myMessage.error('請輸入正確的郵箱格式 (例如: user@example.com)');
+          return;
+        }
+      }
+
+      else if (this.editField === 'website') {
+        // 网站正则：要求必须包含 http/https 或者 www 开头，或者至少像个域名
+        // 这里做一个兼容性较好的校验
+        const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+        if (!urlRegex.test(value)) {
+
+          this.$myMessage({
+            content: '請輸入正確的網站網址 (例如: https://blog.example.com)',
+            type: 'error',
+            duration: 1000
+          });
+          return;
+        }
+
+        // 可选优化：如果用户没填 http://，自动给他补上（体验更好）
+        if (!/^https?:\/\//.test(value)) {
+          value = 'https://' + value;
+        }
+      }
+
+      // 3. 校验通过，保存
+      this.saveAndClose(value);
+    },
+
+    // 抽离出的保存逻辑
+    saveAndClose(finalValue) {
+      this.$store.commit('UPDATE_GUEST', {
+        [this.editField]: finalValue
+      });
+      this.$myMessage.success('更新成功');
       this.closeEditModal();
     },
 
-    //  原来的 initGuest, saveGuest, generateUUID 全部删除，已移至 Store
+
 
     copyText(text) {
       const input = document.createElement('input'); input.setAttribute('readonly', 'readonly'); input.setAttribute('value', text);
       document.body.appendChild(input); input.select();
-      if (document.execCommand('copy')) { this.$message.success('複製成功'); }
+      if (document.execCommand('copy')) { this.$myMessage.success('複製成功'); }
       document.body.removeChild(input);
     },
 
@@ -328,11 +380,23 @@ export default {
     onGuestShow() { this.$nextTick(() => { const el = this.$refs.guestPanel; if(el) gsap.fromTo(el, { y: 15, opacity: 0, scale: 0.96 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: true }); }); },
     onUserShow() { this.$nextTick(() => { const el = this.$refs.userPanel; if(el) gsap.fromTo(el, { y: 15, opacity: 0, scale: 0.96 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)", overwrite: true }); }); },
     closePopovers() { this.closeAllPanels(); },
-    beforeLeave(el) { this.$refs.smoothBox.style.height = this.$refs.smoothBox.scrollHeight + 'px'; },
-    enter(el) { this.$refs.smoothBox.style.height = el.scrollHeight + 'px'; },
-    afterEnter(el) { this.$refs.smoothBox.style.height = 'auto'; },
-    onLogoEnter() { gsap.to(this.$refs.moonIcon, { rotation: -20, scale: 1.2, color: '#d4af37', duration: 0.4, ease: 'back.out' }); gsap.to(this.$refs.sakuraIcon, { rotation: 20, scale: 1.2, color: '#ffb7c5', duration: 0.4, ease: 'back.out' }); gsap.to(this.$refs.logoText, { color: '#d4af37', letterSpacing: '2px', duration: 0.4 }); },
-    onLogoLeave() { gsap.to(this.$refs.moonIcon, { rotation: 0, scale: 1, color: '#4a4a4a', duration: 0.4 }); gsap.to(this.$refs.sakuraIcon, { rotation: 0, scale: 1, color: '#4a4a4a', duration: 0.4 }); gsap.to(this.$refs.logoText, { color: '#4a4a4a', letterSpacing: '1px', duration: 0.4 }); },
+    beforeLeave(el) {if (this.$refs.smoothBox) {this.$refs.smoothBox.style.height = this.$refs.smoothBox.scrollHeight + 'px';}},
+    enter(el) { if (this.$refs.smoothBox) {this.$refs.smoothBox.style.height = el.scrollHeight + 'px'; }},
+    afterEnter(el) {if (this.$refs.smoothBox) { this.$refs.smoothBox.style.height = 'auto'; }},
+    onLogoEnter() {
+      // 删除了 scale: 1.2
+      gsap.to(this.$refs.moonIcon, { rotation: -20, color: '#d4af37', duration: 0.4, ease: 'back.out' });
+      gsap.to(this.$refs.sakuraIcon, { rotation: 20, color: '#ffb7c5', duration: 0.4, ease: 'back.out' });
+      // 删除了 letterSpacing: '2px'
+      gsap.to(this.$refs.logoText, { color: '#d4af37', duration: 0.4 });
+    },
+    onLogoLeave() {
+      // 删除了 scale: 1
+      gsap.to(this.$refs.moonIcon, { rotation: 0, color: '#4a4a4a', duration: 0.4 });
+      gsap.to(this.$refs.sakuraIcon, { rotation: 0, color: '#4a4a4a', duration: 0.4 });
+      // 删除了 letterSpacing: '1px'
+      gsap.to(this.$refs.logoText, { color: '#4a4a4a', duration: 0.4 });
+    },
     onNavEnter(e) { const target = e.currentTarget; const enText = target.querySelector('.nav-text-en'); const cnText = target.querySelector('.nav-text-cn'); const underline = target.querySelector('.nav-underline'); gsap.killTweensOf([enText, cnText, underline]); gsap.to(enText, { y: -5, color: '#d4af37', fontWeight: '700', duration: 0.3, ease: 'power2.out' }); gsap.to(cnText, { y: 2, opacity: 1, color: '#888', duration: 0.3, ease: 'power2.out' }); gsap.to(underline, { width: '100%', opacity: 1, duration: 0.4, ease: 'power2.out' }); },
     onNavLeave(e) { const target = e.currentTarget; const enText = target.querySelector('.nav-text-en'); const cnText = target.querySelector('.nav-text-cn'); const underline = target.querySelector('.nav-underline'); gsap.killTweensOf([enText, cnText, underline]); gsap.to(enText, { y: 0, color: '#555', fontWeight: '600', duration: 0.3 }); gsap.to(cnText, { y: 10, opacity: 0, duration: 0.3 }); gsap.to(underline, { width: '0%', opacity: 0, duration: 0.3 }); },
     handleScroll() { if (!this.ticking) { window.requestAnimationFrame(() => { const scrollTop = window.pageYOffset || document.documentElement.scrollTop; const shouldScroll = scrollTop > 60; if (this.isScrolled !== shouldScroll) { this.isScrolled = shouldScroll } this.ticking = false }); this.ticking = true } },

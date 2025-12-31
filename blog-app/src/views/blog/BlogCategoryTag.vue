@@ -81,7 +81,11 @@
           that.ct = data.data
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章分类加载失败', showClose: true})
+            that.$myMessage({
+              type: 'error',
+              content: '文章分类加载失败',
+              duration: 3000
+            })
           }
         })
       },
@@ -91,7 +95,11 @@
           that.ct = data.data
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '标签加载失败', showClose: true})
+            that.$myMessage({
+              type: 'error',
+              content: '标签加载失败',
+              duration: 3000
+            })
           }
         })
       },
@@ -102,7 +110,11 @@
 
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章加载失败', showClose: true})
+            that.$myMessage({
+              type: 'error',
+              content: '文章加载失败',
+              duration: 3000
+            })
           }
         })
       },
@@ -113,7 +125,11 @@
 
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章加载失败', showClose: true})
+            that.$myMessage({
+              type: 'error',
+              content: '文章加载失败',
+              duration: 3000
+            })
           }
         })
       }

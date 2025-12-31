@@ -25,7 +25,7 @@
         </el-form-item>
       </el-form>
 
-  
+
 
     </div>
   </div>
@@ -67,11 +67,19 @@
           if (valid) {
 
             that.$store.dispatch('register', that.userForm).then(() => {
-              that.$message({message: '注册成功 快写文章吧', type: 'success', showClose: true});
+              that.$myMessage({
+                content: '注册成功 快写文章吧',
+                type: 'success',
+                duration: 3000
+              });
               that.$router.push({path: '/'})
             }).catch((error) => {
               if (error !== 'error') {
-                that.$message({message: error, type: 'error', showClose: true});
+                that.$myMessage({
+                  content: error,
+                  type: 'error',
+                  duration: 3000
+                });
               }
             })
 

@@ -181,10 +181,10 @@
         // 后端传过来的 viewKeys 可能是字符串 "1" 也可能是数字 1，使用 == 比较保险
         if (this.article.viewKeys == 1 && !this.$store.state.token) {
 
-          this.$message({
+          this.$myMessage({
             type: 'warning',
-            message: '该信息仅对登录用户开放，请先登录!',
-            showClose: true
+            content: '该信息仅对登录用户开放，请先登录!',
+            duration: 3000
           })
 
           // 跳转登录页
@@ -212,7 +212,11 @@
 		  that.queryCount();
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章加载失败', showClose: true})
+            that.$myMessage({
+              type: 'error',
+              content: '文章加载失败',
+              duration: 3000
+            })
           }
         })
       },
@@ -235,17 +239,19 @@
         let parms = {articleId:that.article.id,content:that.comment.content}
         publishComment(parms,this.$store.state.token).then(data => {
           if(data.success){
-            that.$message({type: 'success', message: '评论成功', showClose: true})
+            that.$myMessage({
+              type: 'success', content: '评论成功', duration: 3000
+            })
             that.comment.content = ''
 			that. getCommentsByArticle()//刷新评论区
 
           }else{
-               that.$message({type: 'error', message: data.msg, showClose: true})
+               that.$myMessage({type: 'error', content: data.msg, duration: 3000})
           }
 
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '评论失败', showClose: true})
+            that.$myMessage({type: 'error', content: '评论失败', duration: 3000})
           }
         })
       },
@@ -256,11 +262,11 @@
           if(data.success){
                that.comments = data.data
           }else{
-             that.$message({type: 'error', message: '评论加载失败', showClose: true})
+             that.$myMessage({type: 'error', content: '评论加载失败', duration: 3000})
           }
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '评论加载失败', showClose: true})
+            that.$myMessage({type: 'error', content: '评论加载失败', duration: 3000})
           }
         })
       },

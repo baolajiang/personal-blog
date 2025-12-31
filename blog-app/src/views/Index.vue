@@ -76,7 +76,7 @@
     },
 		computed: {
 		  title() {
-		    return `${this.$myName}の里世界`
+		    return `${this.$myName}`
 		  }
 		},
     methods: {
@@ -86,7 +86,7 @@
           that.hotArticles = data.data
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '最热文章加载失败!', showClose: true})
+            that.$myMessage({type: 'error', content: '最热文章加载失败!', duration: 3000})
           }
 
         })
@@ -98,7 +98,7 @@
           that.newArticles = data.data
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '最新文章加载失败!', showClose: true})
+            that.$myMessage({type: 'error', content: '最新文章加载失败!', duration: 3000})
           }
 
         })
@@ -110,18 +110,19 @@
           that.hotTags = data.data
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '最热标签加载失败!', showClose: true})
+            that.$myMessage({type: 'error', content: '最热标签加载失败!', duration: 3000})
           }
 
         })
       },
       listArchives() {
+        let that = this
         listArchives().then((data => {
           this.archives = data.data
 		  this.archives2 = data.data.reverse()
         })).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章归档加载失败!', showClose: true})
+            that.$myMessage({type: 'error', content: '文章加载失败!', duration: 3000})
           }
         })
       }

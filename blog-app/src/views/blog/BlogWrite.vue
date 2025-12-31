@@ -154,23 +154,23 @@
           this.articleForm.tags = tags
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章加载失败', showClose: true})
+            that.$myMessage({type: 'error', content: '文章加载失败', duration: 3000})
           }
         })
       },
       publishShow() {
         if (!this.articleForm.title) {
-          this.$message({message: '标题不能为空哦', type: 'warning', showClose: true})
+          this.$myMessage({content: '标题不能为空哦', type: 'warning', duration: 3000})
           return
         }
 
         if (this.articleForm.title.length > 35) {
-          this.$message({message: '标题不能大于30个字符', type: 'warning', showClose: true})
+          this.$myMessage({content: '标题不能大于30个字符', type: 'warning', duration: 3000})
           return
         }
 
         if (!this.articleForm.editor.ref.d_render) {
-          this.$message({message: '内容不能为空哦', type: 'warning', showClose: true})
+          this.$myMessage({content: '内容不能为空哦', type: 'warning', duration: 3000})
           return
         }
 
@@ -211,16 +211,16 @@
             publishArticle(article,this.$store.state.token).then((data) => {
               if(data.success){
                 loading.close();
-                that.$message({message: '发布成功啦', type: 'success', showClose: true})
+                that.$myMessage({content: '发布成功啦', type: 'success', duration: 3000})
                 that.$router.push({path: `/view/${data.data.id}`})
               }else{
-                that.$message({message: error, type: '发布文章失败:'+data.msg, showClose: true});
+                that.$myMessage({content: error, type: 'error', duration: 3000});
               }
 
             }).catch((error) => {
               loading.close();
               if (error !== 'error') {
-                that.$message({message: error, type: 'error', showClose: true});
+                that.$myMessage({content: error, type: 'error', duration: 3000});
               }
             })
 
@@ -244,12 +244,12 @@
           if(data.success){
             that.categorys = data.data
           }else{
-             that.$message({type: 'error', message: '文章分类加载失败', showClose: true})
+             that.$myMessage({type: 'error', content: '文章分类加载失败', duration: 3000})
           }
 
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章分类加载失败', showClose: true})
+            that.$myMessage({type: 'error', content: '文章分类加载失败', duration: 3000})
           }
         })
 
@@ -257,11 +257,11 @@
           if(data.success){
             that.tags = data.data
           }else{
-             that.$message({type: 'error', message: '标签加载失败', showClose: true})
+             that.$myMessage({type: 'error', content: '标签加载失败', duration: 3000})
           }
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '标签加载失败', showClose: true})
+            that.$myMessage({type: 'error', content: '标签加载失败', duration: 3000})
           }
         })
 

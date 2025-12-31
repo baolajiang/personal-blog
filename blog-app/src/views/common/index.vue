@@ -1,5 +1,5 @@
 <template>
-	<!-- 归档ArticleItem -->
+	<!-- 文章列表单个元素ArticleItem -->
 	<div class="sss">
 		<article-item v-for="(a,index) in articles" :key="a.id" v-bind="a" :index="index"></article-item>
 		  <div class="block">
@@ -118,7 +118,7 @@
           that.articles= data.data
         }).catch(error => {
           if (error !== 'error') {
-            that.$message({type: 'error', message: '文章加载失败!', showClose: true})
+            that.$myMessage({type: 'error', content: '文章加载失败!', duration: 3000})
           }
         }).finally(() => {
           that.loading = false

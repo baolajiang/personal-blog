@@ -61,7 +61,7 @@
               }
             }).catch((error) => {
               if (error !== 'error') {
-                that.$message({message: error, type: 'error', showClose: true});
+                that.$myMessage({content: error, type: 'error', duration: 3000});
               }
             })
           } else {

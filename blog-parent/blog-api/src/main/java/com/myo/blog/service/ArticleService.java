@@ -34,7 +34,7 @@ public interface ArticleService {
     Result newArticles(int limit);
 
     /**
-     * 文章归档
+     * 文章列表
      * @return
      */
     Result listArchives();

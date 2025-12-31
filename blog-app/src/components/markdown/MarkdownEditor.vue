@@ -38,11 +38,19 @@
 
             that.$refs.md.$img2Url(pos, data.data);
           } else {
-            that.$message({message: data.msg, type: 'error', showClose: true})
+            that.$myMessage({
+              content: data.msg,
+              type: 'error',
+              duration: 3000
+            })
           }
 
         }).catch(err => {
-          that.$message({message: err, type: 'error', showClose: true});
+          that.$myMessage({
+            content: err,
+            type: 'error',
+            duration: 3000
+          });
         })
       }
     },

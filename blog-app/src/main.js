@@ -5,8 +5,8 @@ import request from './request' // 引你封装好的 service
 import router from './router'
 import store from './store'
 import 'default-passive-events'
-
-
+// 引入写的 Message
+import myMessage from './utils/Message.js'
 
 import lodash from 'lodash'
 
@@ -31,7 +31,8 @@ Vue.config.productionTip = false
 Vue.prototype.$axios = request
 // 设置全局变量
 Vue.prototype.$myName = '月之别邸';
-
+// 挂载到原型上，起个名字，比如 $myMessage 以免和 element 冲突
+Vue.prototype.$myMessage = myMessage
 Vue.use(ElementUI)
 Object.defineProperty(Vue.prototype, '$_', { value: lodash })
 
