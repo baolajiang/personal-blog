@@ -352,9 +352,13 @@ export default {
   font-weight: 700;
   margin-bottom: 12px;
   line-height: 1.3;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   overflow: hidden;
-  text-overflow: ellipsis;
+
+
+
 }
 
 .luna-summary {
