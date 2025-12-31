@@ -240,18 +240,18 @@
         publishComment(parms,this.$store.state.token).then(data => {
           if(data.success){
             that.$myMessage({
-              type: 'success', content: '评论成功', duration: 3000
+              type: 'success', content: '评论成功', showClose: true
             })
             that.comment.content = ''
 			that. getCommentsByArticle()//刷新评论区
 
           }else{
-               that.$myMessage({type: 'error', content: data.msg, duration: 3000})
+               that.$myMessage({type: 'error', content: data.msg, showClose: true})
           }
 
         }).catch(error => {
           if (error !== 'error') {
-            that.$myMessage({type: 'error', content: '评论失败', duration: 3000})
+            that.$myMessage({type: 'error', content: '评论失败', showClose: true})
           }
         })
       },
@@ -262,11 +262,11 @@
           if(data.success){
                that.comments = data.data
           }else{
-             that.$myMessage({type: 'error', content: '评论加载失败', duration: 3000})
+             that.$message({type: 'error', message: '评论加载失败', showClose: true})
           }
         }).catch(error => {
           if (error !== 'error') {
-            that.$myMessage({type: 'error', content: '评论加载失败', duration: 3000})
+            that.$message({type: 'error', message: '评论加载失败', showClose: true})
           }
         })
       },

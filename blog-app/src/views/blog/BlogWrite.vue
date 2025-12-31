@@ -212,7 +212,8 @@
               if(data.success){
                 loading.close();
                 that.$myMessage({content: '发布成功啦', type: 'success', duration: 3000})
-                that.$router.push({path: `/view/${data.data.id}`})
+                //that.$router.push({path: `/view/${data.data.id}`})
+                that.$router.replace({path: `/view/${data.data.id}`});
               }else{
                 that.$myMessage({content: error, type: 'error', duration: 3000});
               }
