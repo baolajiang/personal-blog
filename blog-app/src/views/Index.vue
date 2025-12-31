@@ -5,27 +5,16 @@
 	<div class="container">
 
 		<div class="row">
-			 <div class="content-left">
-			 </div>
-			  <div class="content-main">
-				    <main-title></main-title>
-					<article-list-page v-bind="article"></article-list-page>
-			  </div>
 
-			  <div class="content-right">
+			  <div class="content-card">
 			  <div class="card-list">
+          <card-tag :tags="hotTags"></card-tag>
 
-				<card-me class="me-area"></card-me>
+          <card-article cardHeader="最热" :articles="hotArticles"></card-article>
 
+          <card-article cardHeader="最新" :articles="newArticles"></card-article>
 
-
-				<card-tag :tags="hotTags"></card-tag>
-
-				<card-article cardHeader="最热" :articles="hotArticles"></card-article>
-
-				<card-article cardHeader="最新" :articles="newArticles"></card-article>
-
-				<card-technology cardHeader="暂时？" :archives="archives2"></card-technology>
+          <card-technology cardHeader="暂时？" :archives="archives2"></card-technology>
 			  </div>
 			</div>
 		</div>
@@ -35,13 +24,12 @@
 </template>
 
 <script>
-  import mainTitle from '@/components/article/MainTitle'
-  import cardMe from '@/components/card/cardMe'
+
   import cardArticle from '@/components/card/cardArticle'
   import CardTechnology from '@/components/card/CardTechnology'
   import cardTag from '@/components/card/cardTag'
   import ArticleListPage from '@/views/common/ArticleListPage'
-  import headertop from '@/components/page'
+
 
 
 
@@ -128,13 +116,12 @@
       }
     },
     components: {
-      'card-me': cardMe,
+
       'card-article': cardArticle,
       'card-tag': cardTag,
       ArticleListPage,
       CardTechnology,
-	    mainTitle,
-	  	headertop,
+
 
     }
   }
@@ -171,7 +158,7 @@
 }
 
 /* 3. 右侧侧边栏 (个人卡片等) */
-.content-right {
+.content-card {
   width: 300px; /* 固定宽度 */
   flex-shrink: 0; /* 关键：防止屏幕变窄时侧边栏被挤扁 */
 }
@@ -198,22 +185,9 @@
 
 /* 当屏幕小于 960px 时 (平板/手机) */
 @media only screen and (max-width: 960px) {
-  .row {
-    flex-direction: column; /* 改为上下排列 */
-  }
 
-  .content-right {
-    width: 100%; /* 侧边栏变更为 100% 宽度 */
-    margin-top: 20px; /* 和上面内容拉开距离 */
-  }
 
-  .card-list {
-    max-width: 100%; /* 取消最大宽度限制 */
-  }
 
-  /* 如果想在手机端把侧边栏放到下面，column 默认就是这样。
-     如果想在手机端隐藏侧边栏，可以在这里加 .content-right { display: none; }
-  */
-  .content-right { display: none; }
+
 }
 </style>

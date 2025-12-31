@@ -36,6 +36,7 @@
 </template>
 <script>
 import $ from 'jquery'
+import cardMe from '@/components/card/cardMe'
 	export default {
 		name: "index",
 		mounted() {
