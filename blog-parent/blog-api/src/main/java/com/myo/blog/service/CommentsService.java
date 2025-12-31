@@ -10,8 +10,11 @@ public interface CommentsService {
      * @return
      */
     Result commentsByArticleId(Long id);
-
+     /**
+     * 新增评论
+     * @param commentParam
+     * @return
+     */
     Result comment(CommentParam commentParam);
-
 
 }

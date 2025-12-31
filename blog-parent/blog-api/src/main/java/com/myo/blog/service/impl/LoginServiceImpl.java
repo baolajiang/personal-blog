@@ -152,7 +152,7 @@ public class LoginServiceImpl implements LoginService {
         sysUser.setCreateDate(System.currentTimeMillis());
         sysUser.setLastLogin(System.currentTimeMillis());
         sysUser.setAvatar("/static/img/tx.gif");
-        sysUser.setAdmin(1); //1 为true
+        sysUser.setAdmin(0); //普通用户注册时，默认权限必须是 0 (普通用户) ，1（管理员），2(超级管理员) ，3(系统管理员)，4(超管)，-999(禁用)
         sysUser.setDeleted(0); // 0 为false
         sysUser.setSalt("");
         sysUser.setStatus("");

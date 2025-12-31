@@ -222,10 +222,10 @@ export default {
 
       navItems: [
         { name: '首頁', en: 'Home', path: '/', icon: 'el-icon-s-home' },
-        { name: '歸檔', en: 'Archives', path: '/archives', icon: 'el-icon-document' },
+        { name: '文章', en: 'Archives', path: '/archives', icon: 'el-icon-document' },
         { name: '分類', en: 'Category', path: '/category/all', icon: 'el-icon-menu' },
         { name: '標籤', en: 'Tags', path: '/tag/all', icon: 'el-icon-price-tag' },
-        { name: '友鏈', en: 'Links', path: '/nav', icon: 'el-icon-compass' },
+        { name: '導航', en: 'Links', path: '/nav', icon: 'el-icon-compass' },
         { name: '關於', en: 'Resume', path: '/Resume', icon: 'el-icon-info' },
         { name: '留言', en: 'Guestbook', path: '/messageBoard', icon: 'el-icon-chat-dot-round' }
       ]

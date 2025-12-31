@@ -4,7 +4,12 @@ package com.myo.blog;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import com.alibaba.fastjson.JSON;
+import com.myo.blog.entity.Result;
+import com.myo.blog.service.CommentsService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import java.io.*;
 
 import java.net.*;
@@ -23,7 +28,8 @@ import java.util.regex.Pattern;
  */
 @SpringBootTest
 public class BlogApp {
-
+    @Autowired
+    private CommentsService commentsService;
 
     @Test
     public void test() throws Exception {
@@ -46,6 +52,26 @@ public class BlogApp {
         // 将StringBuilder转换为字符串并返回
         return verificationCode.toString();
     }
+
+    @Test
+    public void testCommentService() {
+        // ⚠️ 注意：这里必须填入你数据库中真实存在的文章ID
+        int i=21;
+        long l=i;
+        Long articleId = l;
+
+        System.out.println("开始测试获取文章评论...");
+
+        // 调用我们优化后的方法
+        Result result = commentsService.commentsByArticleId(articleId);
+
+        // 打印结果 (使用 FastJSON 转成字符串方便查看结构)
+        System.out.println("测试结果: " + JSON.toJSONString(result));
+
+        // 如果没有 FastJSON，直接用这个:
+        // System.out.println("测试结果: " + result);
+    }
+
 
 
 }

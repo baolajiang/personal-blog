@@ -10,4 +10,6 @@ public class BlogApp {
         SpringApplication.run(BlogApp.class, args);
     }
 
+
+
 }

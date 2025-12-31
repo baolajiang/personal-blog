@@ -122,6 +122,7 @@
             that.$myMessage({
               type: 'error',
               content: '评论失败',
+              showClose: true,
               duration: 3000
             })
           }
