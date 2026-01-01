@@ -31,9 +31,7 @@ export default {
 
   },
 	methods:{
-		bgimage(){
 
-		}
 
 	}
 }

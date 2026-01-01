@@ -3,7 +3,7 @@
 
 		<base-header :activeIndex="activeIndex" class="me-header " @func="showdeng"></base-header>
 
-		<headertop class="header-top" v-if="$route.meta.requireShow"></headertop>
+
 		<div class="layout-content">
 			<router-view/>
 		</div>
@@ -20,7 +20,7 @@
 
 import BaseFooter from '@/components/BaseFooter'
 import BaseHeader from '@/views/BaseHeader'
-import headertop from '@/components/page'
+
 
 
 export default {
@@ -34,7 +34,7 @@ export default {
   components:{
   	'base-header':BaseHeader,
   	'base-footer':BaseFooter,
-	headertop,
+
 
 
   },

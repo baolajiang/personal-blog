@@ -4,7 +4,7 @@
     <div slot="header" class="me-category-header">
       <span>{{cardHeader}}</span>
     </div>
-	
+
   </el-card>
 </template>
 <script>
@@ -16,7 +16,7 @@
         type: String,
         required: true
       },
-      archives: {
+      articles: {
         type: Array,
         required: true
       }
@@ -54,7 +54,7 @@
   .me-category-item a:hover {
     text-decoration: underline;
   }
-  
+
 
 
 </style>

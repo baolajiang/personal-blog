@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.myo.blog.dao.dos.Archives;
+import com.myo.blog.dao.dos.articles;
 import com.myo.blog.dao.mapper.*;
 import com.myo.blog.dao.pojo.*;
 import com.myo.blog.service.*;
@@ -164,9 +164,9 @@ public class ArticleServiceImpl implements ArticleService {
      * 文章歸檔列表 (按年月分組)
      */
     @Override
-    public Result listArchives() {
-        List<Archives> archivesList = articleMapper.listArchives();
-        return Result.success(archivesList);
+    public Result listarticles() {
+        List<articles> articlesList = articleMapper.listarticles();
+        return Result.success(articlesList);
     }
 
     /**

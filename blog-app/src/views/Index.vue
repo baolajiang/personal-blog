@@ -3,7 +3,7 @@
 <div v-title :data-title="title" >
 	<!-- 首页布局 -->
 	<div class="container">
-
+    <header-top class="header-top"></header-top>
 		<div class="row">
 
 			  <div class="content-card">
@@ -14,10 +14,11 @@
 
           <card-article cardHeader="最新" :articles="newArticles"></card-article>
 
-          <card-technology cardHeader="暂时？" :archives="archives2"></card-technology>
+          <card-technology cardHeader="暂时？" :articles="articles2"></card-technology>
 			  </div>
 			</div>
 		</div>
+
 	</div>
 </div>
 
@@ -25,18 +26,19 @@
 
 <script>
 
-  import cardArticle from '@/components/card/cardArticle'
+  import HeaderTop from '@/components/page'
+
   import CardTechnology from '@/components/card/CardTechnology'
   import cardTag from '@/components/card/cardTag'
   import ArticleListPage from '@/views/common/ArticleListPage'
-
+  import CardArticle from '@/components/card/CardArticle'
 
 
 
   import {getArticles, getHotArtices, getNewArtices} from '@/api/article'
   import {getWebinfo} from '@/api/utils'
   import {getHotTags} from '@/api/tag'
-  import {listArchives} from '@/api/article'
+  import {listarticles} from '@/api/article'
 
   export default {
     name: 'Index',
@@ -44,7 +46,7 @@
       this.getHotArtices()
       this.getNewArtices()
       this.getHotTags()
-      this.listArchives()
+      this.listarticles()
     },
     data() {
       return {
@@ -58,8 +60,8 @@
             year: this.$route.params.year
           }
         },
-        archives: [],
-		archives2:[]
+        articles: [],
+		articles2:[]
       }
     },
 		computed: {
@@ -103,11 +105,13 @@
 
         })
       },
-      listArchives() {
+
+      listarticles() {
         let that = this
-        listArchives().then((data => {
-          this.archives = data.data
-		  this.archives2 = data.data.reverse()
+        listarticles().then((data => {
+          this.articles = data.data
+		      this.articles2 = data.data.reverse()
+
         })).catch(error => {
           if (error !== 'error') {
             that.$myMessage({type: 'error', content: '文章加载失败!', duration: 3000})
@@ -117,10 +121,11 @@
     },
     components: {
 
-      'card-article': cardArticle,
       'card-tag': cardTag,
       ArticleListPage,
       CardTechnology,
+      'card-article': CardArticle,
+	    HeaderTop,
 
 
     }
@@ -129,12 +134,12 @@
 
 <style>
 /* 页面容器：居中，最大宽度限制 */
-.container {
-  max-width: 1200px; /* 稍微调宽一点，视觉更舒服 */
+/*.container {
+  max-width: 1200px; !* 稍微调宽一点，视觉更舒服 *!
   margin: 0 auto;
   padding: 20px 15px;
-  box-sizing: border-box; /* 确保 padding 不会撑大宽度 */
-}
+  box-sizing: border-box; !* 确保 padding 不会撑大宽度 *!
+}*/
 
 /* Flex 布局容器 */
 .row {

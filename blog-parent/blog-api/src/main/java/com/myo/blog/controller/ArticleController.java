@@ -74,9 +74,9 @@ public class ArticleController {
      * 首页 最新文章
      * @return
      */
-    @PostMapping("listArchives")
-    public Result listArchives(){
-        return articleService.listArchives();
+    @PostMapping("listarticles")
+    public Result listarticles(){
+        return articleService.listarticles();
     }
 
 

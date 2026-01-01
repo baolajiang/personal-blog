@@ -133,7 +133,7 @@
                     </div>
                     <div class="uc-divider"></div>
                     <div class="uc-menu">
-                      <div class="uc-menu-item" @click="navTo('/archives')"><i class="el-icon-document"></i> <span>我的文章</span></div>
+                      <div class="uc-menu-item" @click="navTo('/articles')"><i class="el-icon-document"></i> <span>我的文章</span></div>
                       <div class="uc-menu-item" @click="navTo('/user/setting')"><i class="el-icon-setting"></i> <span>系統設置</span></div>
                       <div class="uc-menu-item logout-item" @click="logout"><i class="el-icon-switch-button"></i> <span>登出帳戶</span></div>
                     </div>
@@ -222,7 +222,7 @@ export default {
 
       navItems: [
         { name: '首頁', en: 'Home', path: '/', icon: 'el-icon-s-home' },
-        { name: '文章', en: 'Archives', path: '/archives', icon: 'el-icon-document' },
+        { name: '文章', en: 'articles', path: '/articles', icon: 'el-icon-document' },
         { name: '分類', en: 'Category', path: '/category/all', icon: 'el-icon-menu' },
         { name: '標籤', en: 'Tags', path: '/tag/all', icon: 'el-icon-price-tag' },
         { name: '導航', en: 'Links', path: '/nav', icon: 'el-icon-compass' },

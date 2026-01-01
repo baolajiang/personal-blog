@@ -37,7 +37,7 @@ public interface ArticleService {
      * 文章列表
      * @return
      */
-    Result listArchives();
+    Result listarticles();
 
     /**
      * 查看文章详情

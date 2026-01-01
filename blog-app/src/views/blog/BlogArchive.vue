@@ -1,7 +1,7 @@
 <template>
   <div data-title="文章页面">
-    <div class="archives-content">
-      <div class="archives-content-main">
+    <div class="articles-content">
+      <div class="articles-content-main">
         <article-scroll-page></article-scroll-page>
       </div>
     </div>
@@ -21,11 +21,11 @@ export default {
 </script>
 
 <style scoped>
-.archives-content {
+.articles-content {
   position: relative;
 }
 
-.archives-content-main {
+.articles-content-main {
   /* 保持顶部间距，避免被导航栏遮挡 */
   padding-top: 80px;
   margin: 0 auto;

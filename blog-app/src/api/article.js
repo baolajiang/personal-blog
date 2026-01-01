@@ -71,9 +71,9 @@ export function publishArticle(article,token) {
   })
 }
 
-export function listArchives() {
+export function listarticles() {
   return request({
-    url: '/articles/listArchives',
+    url: '/articles/listarticles',
     method: 'post'
   })
 }

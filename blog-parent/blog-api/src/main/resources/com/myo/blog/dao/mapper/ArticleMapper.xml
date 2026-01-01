@@ -19,7 +19,7 @@
         <result column="view_keys" property="viewKeys"/>
     </resultMap>
 
-    <select id="listArchives" resultType="com.myo.blog.dao.dos.Archives">
+    <select id="listarticles" resultType="com.myo.blog.dao.dos.articles">
         select FROM_UNIXTIME(create_date/1000,'%Y') as year,FROM_UNIXTIME(create_date/1000,'%m') as month,count(*) as count from myo_article group by year,month
     </select>
     <!--            Long categoryId,
