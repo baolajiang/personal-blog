@@ -1,359 +1,316 @@
 <template>
-  <div class="moon-contract" v-title data-title="首页 | 月之别邸">
-    <div class="bg-mask"></div>
-    <canvas id="particle-canvas" class="particle-bg"></canvas>
+  <div class="manaria-duo-container" @mousemove="handleMouseMove">
 
-    <div class="contract-paper animated-fade-up">
+    <div class="bg-layer-anne"></div> <div class="bg-layer-grea"></div> <div class="particles-anne" id="p-anne"></div> <div class="particles-grea" id="p-grea"></div> <div class="magic-circle-group" ref="magicGroup">
+    <div class="circle-anne"></div>
+    <div class="circle-grea"></div>
+  </div>
 
-      <div class="border-line top"></div>
-      <div class="border-line bottom"></div>
-      <div class="border-line left"></div>
-      <div class="border-line right"></div>
+    <div class="left-float-content" ref="leftContent">
 
-      <div class="side-profile">
-        <div class="avatar-frame-square">
-          <img src="../../../static/img/tx.gif" class="avatar-img" @error="handleImgError">
-          <div class="frame-corner c-tl"></div>
-          <div class="frame-corner c-br"></div>
-        </div>
-
-        <div class="profile-meta">
-          <h1 class="lord-title">MOON'S VILLA</h1>
-          <p class="lord-subtitle">The Sanctuary of Code & Dreams</p>
-          <div class="gold-divider-short"></div>
-          <p class="motto">“ {{ currentPhrase }} ”</p>
-        </div>
-
-        <div class="social-links">
-          <a @click="openLink('https://space.bilibili.com/36932814')">Bilibili</a>
-          <span>/</span>
-          <a @click="openLink('https://music.163.com/#/user/home?id=342473756')">NetEase</a>
-          <span>/</span>
-          <span class="wechat-hover">
-            WeChat
-            <div class="qr-box"><img src="../../../static/user/mywx.png"></div>
-          </span>
+      <div class="avatar-duo-wrapper">
+        <div class="ring-anne"></div>
+        <div class="ring-grea"></div>
+        <div class="avatar-core">
+          <img
+            src="/static/img/露娜切露德7.png"
+            class="avatar-img"
+            alt="Luna"
+            @error="handleImgError"
+          >
         </div>
       </div>
 
-      <div class="side-index">
-        <div class="index-header">
-          <span>CHAPTERS</span>
-          <div class="long-line"></div>
+      <div class="info-area">
+        <div class="tag-line">
+          <span class="gold-t">Manaria</span>
+          <span class="cross">✕</span>
+          <span class="dark-t">Friends</span>
         </div>
+        <h1 class="main-title">LUNA<br><span class="highlight">LINKER</span></h1>
+        <div class="dual-line"></div>
+        <p class="desc">
+          “ 所谓的魔法，就是连接两颗心的奇迹。 ”
+        </p>
+      </div>
 
-        <div class="chapter-list">
-
-          <div class="chapter-item" @click="$router.push('/write')">
-            <span class="chap-num">I</span>
-            <div class="chap-info">
-              <span class="chap-en">THE SCRIPTURES</span>
-              <span class="chap-cn">阅读记录</span>
-            </div>
-            <div class="chap-line"></div>
-          </div>
-
-          <div class="chapter-item" @click="$router.push('/archives')">
-            <span class="chap-num">II</span>
-            <div class="chap-info">
-              <span class="chap-en">CHRONOLOGY</span>
-              <span class="chap-cn">时光回廊</span>
-            </div>
-            <div class="chap-line"></div>
-          </div>
-
-          <div class="chapter-item" @click="$router.push('/messageBoard')">
-            <span class="chap-num">III</span>
-            <div class="chap-info">
-              <span class="chap-en">WHISPERS</span>
-              <span class="chap-cn">绘马留言</span>
-            </div>
-            <div class="chap-line"></div>
-          </div>
-
-          <div class="chapter-item" @click="$router.push('/Resume')">
-            <span class="chap-num">IV</span>
-            <div class="chap-info">
-              <span class="chap-en">THE LORD</span>
-              <span class="chap-cn">别邸主人</span>
-            </div>
-            <div class="chap-line"></div>
-          </div>
-
-        </div>
-
-        <div class="index-footer">
-          <span class="date">EST. 2026</span>
-          <span class="signature">Moon's Villa System</span>
+      <div class="nav-list">
+        <div
+          class="nav-item"
+          v-for="(item, index) in menuItems"
+          :key="index"
+          @click="navigate(item.path)"
+          @mouseenter="hoverItem($event)"
+          @mouseleave="leaveItem($event)"
+        >
+          <span class="icon">{{ item.icon }}</span>
+          <span class="text">{{ item.cn }}</span>
+          <div class="hover-fill"></div>
         </div>
       </div>
 
     </div>
+
+    <div class="corner-mark">
+      <div class="mark-symbol">⚜️</div>
+      <div class="mark-text">Twin Souls Resonance</div>
+    </div>
+
   </div>
 </template>
 
 <script>
-import CardMe from "@/components/card/CardMe";
+import { gsap } from 'gsap';
+
 export default {
-  name: "IndexContract",
+  name: "IndexManariaDuo",
   data() {
     return {
-      currentPhrase: '',
-      phrases: [
-        '即使是虚假的星空，也想为你闪烁',
-        '愿荣光尽归于你',
-        '月色真美，风也温柔',
-        'Loading world data...'
-      ],
-      phraseIndex: 0,
-      typingTimer: null
+      menuItems: [
+        { cn: '学院记录', path: '/write', icon: '📜' },
+        { cn: '时光轨迹', path: '/archives', icon: '⏳' },
+        { cn: '龙之传音', path: '/messageBoard', icon: '🔥' },
+        { cn: '契约书', path: '/Resume', icon: '💠' }
+      ]
     };
   },
   mounted() {
-    this.initParticles();
-    this.startTyping();
-  },
-  beforeDestroy() {
-    if (this.typingTimer) clearTimeout(this.typingTimer);
+    this.createParticles();
+    this.entranceAnim();
+    this.loopAnim();
   },
   methods: {
-    openLink(url) { window.open(url, '_blank'); },
+    navigate(path) {
+      // 离场：双色光辉爆发后消失
+      const tl = gsap.timeline({ onComplete: () => this.$router.push(path) });
+      tl.to('.left-float-content', { x: -50, opacity: 0, duration: 0.5, ease: "power2.in" })
+        .to('.manaria-duo-container', { opacity: 0, duration: 0.5 }, "-=0.3");
+    },
     handleImgError(e) {
-      e.target.src = require('@/assets/img/default_avatar.png');
+      e.target.style.display = 'none';
+      e.target.parentNode.style.backgroundColor = '#2c2c2c';
     },
-    startTyping() {
-      const text = this.phrases[this.phraseIndex];
-      let i = 0;
-      this.currentPhrase = '';
-      const type = () => {
-        if (i < text.length) {
-          this.currentPhrase += text.charAt(i);
-          i++;
-          this.typingTimer = setTimeout(type, 150);
-        } else {
-          this.typingTimer = setTimeout(() => {
-            this.phraseIndex = (this.phraseIndex + 1) % this.phrases.length;
-            this.startTyping();
-          }, 3000);
-        }
-      };
-      type();
+
+    // === 粒子生成 ===
+    createParticles() {
+      // 安的金色粒子
+      const anneContainer = document.getElementById('p-anne');
+      for(let i=0; i<20; i++) this.addParticle(anneContainer, 'particle-gold');
+
+      // 古雷亚的暗色粒子
+      const greaContainer = document.getElementById('p-grea');
+      for(let i=0; i<15; i++) this.addParticle(greaContainer, 'particle-dark');
     },
-    // 金色星尘粒子
-    initParticles() {
-      const canvas = document.getElementById('particle-canvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    addParticle(container, className) {
+      const p = document.createElement('div');
+      p.className = className;
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 100 + '%';
+      p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+      p.style.animationDelay = (Math.random() * 5) + 's';
+      container.appendChild(p);
+    },
 
-      const particles = [];
-      for(let i=0; i<40; i++) {
-        particles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 2,
-          speed: Math.random() * 0.5 + 0.1,
-          opacity: Math.random()
-        });
-      }
+    // === 交互动画 ===
+    hoverItem(e) {
+      // 悬停时，金色填充滑入
+      gsap.to(e.currentTarget.querySelector('.hover-fill'), { width: '100%', duration: 0.3, ease: 'power2.out' });
+      gsap.to(e.currentTarget.querySelector('.text'), { color: '#000', x: 5, duration: 0.3 });
+      gsap.to(e.currentTarget.querySelector('.icon'), { color: '#000', duration: 0.3 });
+    },
+    leaveItem(e) {
+      gsap.to(e.currentTarget.querySelector('.hover-fill'), { width: '0%', duration: 0.3, ease: 'power2.in' });
+      gsap.to(e.currentTarget.querySelector('.text'), { color: '#fff', x: 0, duration: 0.3 });
+      gsap.to(e.currentTarget.querySelector('.icon'), { color: '#d4af37', duration: 0.3 });
+    },
+    handleMouseMove(e) {
+      const x = (e.clientX / window.innerWidth - 0.5);
+      const y = (e.clientY / window.innerHeight - 0.5);
 
-      const animate = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(p => {
-          p.y -= p.speed;
-          if(p.y < 0) p.y = canvas.height;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
-          ctx.fill();
-        });
-        requestAnimationFrame(animate);
-      }
-      animate();
-      window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+      // 双重光环反向移动，制造极强的空间感
+      gsap.to('.ring-anne', { x: x * 20, y: y * 20, duration: 1.5 });
+      gsap.to('.ring-grea', { x: -x * 20, y: -y * 20, duration: 1.5 });
+
+      // 魔法阵视差
+      gsap.to(this.$refs.magicGroup, { x: x * 40, y: y * 40, rotationY: x * 10, duration: 2 });
+    },
+
+    // === 进场动画 ===
+    entranceAnim() {
+      const tl = gsap.timeline();
+      tl.from('.left-float-content', { x: -80, opacity: 0, duration: 1.2, ease: "power3.out" })
+        .from('.avatar-core', { scale: 0, duration: 0.8, ease: "back.out(1.5)" }, "-=0.8")
+        .from(['.ring-anne', '.ring-grea'], { scale: 1.5, opacity: 0, rotation: 180, duration: 1 }, "-=0.8")
+        .from('.nav-item', { x: -20, opacity: 0, stagger: 0.1, duration: 0.6 }, "-=0.6");
+    },
+
+    // === 循环动画 ===
+    loopAnim() {
+      // 安的光环：顺时针，呼吸
+      gsap.to('.ring-anne', { rotation: 360, duration: 40, repeat: -1, ease: 'none' });
+      gsap.to('.ring-anne', { boxShadow: "0 0 20px rgba(255, 215, 0, 0.4)", duration: 2, yoyo: true, repeat: -1 });
+
+      // 古雷亚的光环：逆时针，更慢
+      gsap.to('.ring-grea', { rotation: -360, duration: 50, repeat: -1, ease: 'none' });
+
+      // 魔法阵转动
+      gsap.to('.circle-anne', { rotation: 360, duration: 80, repeat: -1, ease: 'none' });
+      gsap.to('.circle-grea', { rotation: -360, duration: 60, repeat: -1, ease: 'none' });
     }
-  },
-  components: {
-    CardMe,
   }
 };
 </script>
 
 <style scoped>
-/* 核心字体：衬线体 */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@300;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap');
 
-.moon-contract {
-  position: relative; width: 100%; min-height: 100vh;
-  /* 你的背景图 */
-  background-image: url('../../../static/img/anime-sunset-art-wallpaper-2560x1080_14.jpg');
-  background-size: cover; background-position: center; background-attachment: fixed;
-  font-family: 'Cinzel', 'Noto Serif SC', serif;
-  color: #333;
+/* 全局容器 */
+.manaria-duo-container {
+  position: relative; width: 100%; height: 100vh;
   overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+  /* 核心背景：左边是安的暖光，右边是古雷亚的夜色 */
+  background: linear-gradient(110deg, #1a1a2e 30%, #2e2030 100%);
+  font-family: 'Cinzel', 'Noto Serif SC', serif;
+  color: #fff;
 }
 
-/* 遮罩：使用高浓度的米白，营造纸张感 */
-.bg-mask {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(255, 250, 245, 0.90);
-  backdrop-filter: blur(8px);
-  z-index: 0;
+/* 1. 背景层 (双色交融) */
+.bg-layer-anne {
+  position: absolute; top: -50%; left: -20%; width: 100%; height: 150%;
+  background: radial-gradient(circle, rgba(255, 225, 150, 0.15), transparent 70%);
+  z-index: 0; pointer-events: none;
+}
+.bg-layer-grea {
+  position: absolute; bottom: -20%; right: -20%; width: 100%; height: 100%;
+  background: radial-gradient(circle, rgba(100, 50, 255, 0.1), transparent 60%);
+  z-index: 0; pointer-events: none;
 }
 
-.particle-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+/* 粒子 */
+.particles-anne, .particles-grea { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+</style>
+<style>
+/* 全局粒子样式 */
+.particle-gold {
+  position: absolute; width: 4px; height: 4px; background: #d4af37; border-radius: 50%;
+  box-shadow: 0 0 5px #d4af37; animation: floatUp 8s infinite linear;
+}
+.particle-dark {
+  position: absolute; width: 6px; height: 6px; background: transparent;
+  border: 1px solid #a08cff; transform: rotate(45deg); /* 菱形代表龙鳞 */
+  animation: floatUp 12s infinite linear; opacity: 0.6;
+}
+@keyframes floatUp { from { transform: translateY(0) rotate(0deg); opacity: 0; } 50% { opacity: 1; } to { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }
+</style>
 
-/* === 主契约书 (Container) === */
-.contract-paper {
-  position: relative; z-index: 10;
-  width: 900px; height: 550px;
-  background: rgba(255, 255, 255, 0.5); /* 半透明 */
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
-  display: flex;
-  padding: 50px;
-  box-sizing: border-box;
+<style scoped>
+/* 2. 魔法阵 (背景装饰) */
+.magic-circle-group {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 600px; height: 600px; pointer-events: none; z-index: 0;
+  opacity: 0.15;
+}
+.circle-anne {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  border: 2px solid #d4af37; border-radius: 50%;
+  border-left: 2px dashed transparent; border-right: 2px dashed transparent;
+}
+.circle-grea {
+  position: absolute; top: 15%; left: 15%; width: 70%; height: 70%;
+  border: 2px solid #a08cff; border-radius: 50%;
+  border-top: 2px dashed transparent; border-bottom: 2px dashed transparent;
 }
 
-/* 装饰细线 */
-.border-line { position: absolute; background: #d4af37; opacity: 0.5; }
-.top { top: 20px; left: 20px; right: 20px; height: 1px; }
-.bottom { bottom: 20px; left: 20px; right: 20px; height: 1px; }
-.left { top: 20px; bottom: 20px; left: 20px; width: 1px; }
-.right { top: 20px; bottom: 20px; right: 20px; width: 1px; }
-
-/* === 左侧：Profile === */
-.side-profile {
-  width: 350px;
-  border-right: 1px solid rgba(212, 175, 55, 0.3);
-  padding-right: 40px;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  text-align: center;
+/* 3. 左侧内容 (IamYukino 布局) */
+.left-float-content {
+  position: absolute;
+  /* 关键布局：左侧 15%，垂直居中 */
+  left: 15%; top: 50%; transform: translateY(-50%);
+  z-index: 10;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 30px;
 }
 
-.avatar-frame-square {
-  width: 140px; height: 140px; margin-bottom: 30px;
+/* 头像组 (安的金环 + 古雷亚的龙环) */
+.avatar-duo-wrapper {
+  position: relative; width: 140px; height: 140px;
+  display: flex; justify-content: center; align-items: center;
+}
+.ring-anne {
+  position: absolute; width: 100%; height: 100%; border-radius: 50%;
+  border: 1px solid #d4af37; /* 金色 */
+}
+.ring-grea {
+  position: absolute; width: 120%; height: 120%; border-radius: 50%;
+  border: 1px dashed #a08cff; /* 龙紫色 */
+  opacity: 0.6;
+}
+.avatar-core {
+  width: 110px; height: 110px; border-radius: 50%;
+  overflow: hidden; z-index: 2;
+  border: 3px solid #fff;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+.avatar-img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 文字区 */
+.info-area { text-align: left; }
+.tag-line {
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.gold-t { color: #d4af37; }
+.dark-t { color: #a08cff; }
+.cross { font-size: 10px; color: #555; }
+
+.main-title {
+  font-size: 3.5rem; font-weight: 700; margin: 0; line-height: 0.9;
+  letter-spacing: -1px; color: #fff;
+}
+.highlight { color: #d4af37; font-weight: 300; }
+
+.dual-line {
+  width: 80px; height: 4px;
+  background: linear-gradient(to right, #d4af37, #a08cff); /* 双色渐变线 */
+  margin: 20px 0; border-radius: 2px;
+}
+.desc {
+  font-family: 'Noto Serif SC', serif; font-size: 1rem; color: #ccc;
+  line-height: 1.6; font-style: italic; opacity: 0.9;
+}
+
+/* 导航菜单 (胶囊) */
+.nav-list {
+  display: flex; flex-direction: column; gap: 12px; margin-top: 10px;
+}
+.nav-item {
   position: relative;
-  padding: 5px;
-  border: 1px solid rgba(212, 175, 55, 0.3); /* 淡金细框 */
+  display: flex; align-items: center; gap: 15px;
+  padding: 10px 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50px;
+  cursor: pointer; width: 180px;
+  overflow: hidden; /* 必须，为了填充动画 */
 }
-.avatar-img {
-  width: 100%; height: 100%; object-fit: cover;
-  filter: grayscale(30%); transition: filter 0.5s;
-}
-.avatar-frame-square:hover .avatar-img { filter: grayscale(0%); }
-
-/* 装饰角标 */
-.frame-corner {
-  position: absolute; width: 10px; height: 10px;
-  border: 2px solid #d4af37; transition: all 0.3s;
-}
-.c-tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
-.c-br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
-.avatar-frame-square:hover .c-tl { top: -5px; left: -5px; }
-.avatar-frame-square:hover .c-br { bottom: -5px; right: -5px; }
-
-.lord-title {
-  font-size: 28px; margin: 0; color: #2c3e50; letter-spacing: 2px;
-  font-family: 'Cinzel', serif; font-weight: 700;
-}
-.lord-subtitle {
-  font-size: 12px; color: #888; margin-top: 5px; letter-spacing: 1px; font-style: italic;
-}
-.gold-divider-short {
-  width: 30px; height: 2px; background: #d4af37; margin: 20px auto;
-}
-.motto {
-  font-family: 'Noto Serif SC', serif; font-size: 14px; color: #555;
-  min-height: 24px;
+.icon { font-size: 1.1rem; z-index: 2; color: #d4af37; transition: color 0.3s; }
+.text { font-size: 0.95rem; font-weight: 600; z-index: 2; transition: color 0.3s; }
+.hover-fill {
+  position: absolute; top:0; left:0; width: 0%; height: 100%;
+  background: #d4af37; /* 安的金色 */
+  z-index: 1;
 }
 
-.social-links {
-  margin-top: auto;
-  font-size: 12px; color: #aaa;
-  display: flex; gap: 10px;
+/* 右下角 */
+.corner-mark {
+  position: absolute; bottom: 30px; right: 40px; text-align: right; opacity: 0.5;
 }
-.social-links a, .social-links span.wechat-hover {
-  cursor: pointer; transition: color 0.3s; position: relative;
-  font-family: 'Cinzel', serif;
-}
-.social-links a:hover, .social-links span.wechat-hover:hover { color: #d4af37; border-bottom: 1px solid #d4af37; }
-
-.qr-box {
-  position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-  width: 100px; padding: 5px; background: #fff; border: 1px solid #d4af37;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
-}
-.qr-box img { width: 100%; display: block; }
-.wechat-hover:hover .qr-box { opacity: 1; }
-
-
-/* === 右侧：Index === */
-.side-index {
-  flex: 1; padding-left: 50px;
-  display: flex; flex-direction: column; justify-content: center;
-}
-
-.index-header {
-  display: flex; align-items: center; margin-bottom: 40px;
-}
-.index-header span { font-size: 14px; color: #d4af37; letter-spacing: 2px; font-weight: 700; margin-right: 15px; }
-.long-line { flex: 1; height: 1px; background: rgba(212, 175, 55, 0.3); }
-
-.chapter-list { display: flex; flex-direction: column; gap: 10px; }
-
-.chapter-item {
-  display: flex; align-items: center; height: 60px;
-  cursor: pointer; position: relative;
-  transition: all 0.4s;
-}
-
-.chap-num {
-  font-family: 'Cinzel', serif; font-size: 20px; color: #ddd; font-weight: 700; width: 40px;
-  transition: color 0.4s;
-}
-.chap-info { display: flex; flex-direction: column; z-index: 2; }
-.chap-en { font-family: 'Cinzel', serif; font-size: 16px; color: #444; letter-spacing: 1px; transition: transform 0.4s; }
-.chap-cn { font-family: 'Noto Serif SC', serif; font-size: 12px; color: #999; margin-top: 2px; opacity: 0; transform: translateX(-10px); transition: all 0.4s; }
-
-/* 底部线条动画 */
-.chap-line {
-  position: absolute; bottom: 0; left: 0; width: 0%; height: 1px;
-  background: #d4af37; transition: width 0.4s ease;
-}
-
-/* 悬停效果 */
-.chapter-item:hover .chap-num { color: #d4af37; }
-.chapter-item:hover .chap-en { transform: translateY(-2px); color: #000; }
-.chapter-item:hover .chap-cn { opacity: 1; transform: translateX(0); color: #d4af37; }
-.chapter-item:hover .chap-line { width: 100%; }
-
-.index-footer {
-  margin-top: auto; display: flex; justify-content: space-between;
-  font-size: 10px; color: #bbb; letter-spacing: 1px; font-family: 'Cinzel', serif;
-}
-
-/* 动画 */
-.animated-fade-up { animation: fadeUp 1s cubic-bezier(0.23, 1, 0.32, 1); }
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+.mark-symbol { font-size: 2rem; color: #d4af37; margin-bottom: 5px; }
+.mark-text { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
 
 /* 移动端适配 */
 @media screen and (max-width: 900px) {
-  .contract-paper {
-    width: 90%; height: auto; flex-direction: column; padding: 30px;
-  }
-  .side-profile {
-    width: 100%; border-right: none; border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-    padding-right: 0; padding-bottom: 30px; margin-bottom: 30px;
-  }
-  .side-index { padding-left: 0; }
-  .chapter-item { justify-content: center; }
-  .chap-num { display: none; } /* 手机上隐藏序号 */
-  .chap-info { align-items: center; }
-  .chap-cn { opacity: 1; transform: none; margin-top: 5px; } /* 手机上常驻中文 */
+  .left-float-content { left: 10%; top: 45%; }
+  .main-title { font-size: 2.8rem; }
+  .magic-circle-group { width: 300px; height: 300px; }
 }
 </style>

@@ -8,7 +8,7 @@
 			<router-view/>
 		</div>
 
-		<base-footer v-if="this.$router.currentRoute.path=='/'"></base-footer>
+		<base-footer v-if="this.$router.currentRoute.path==='/'"></base-footer>
 
   </div>
 </template>

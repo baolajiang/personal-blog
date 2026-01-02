@@ -8,11 +8,11 @@
 
 			  <div class="content-card">
 			  <div class="card-list">
-          <card-tag :tags="hotTags"></card-tag>
+<!--          <card-tag :tags="hotTags"></card-tag>
 
           <card-article cardHeader="最热" :articles="hotArticles"></card-article>
 
-          <card-article cardHeader="最新" :articles="newArticles"></card-article>
+          <card-article cardHeader="最新" :articles="newArticles"></card-article>-->
 
           <card-technology cardHeader="暂时？" :articles="articles2"></card-technology>
 			  </div>
@@ -143,6 +143,7 @@
 
 /* Flex 布局容器 */
 .row {
+  height: 100vh;
   display: flex;
   justify-content: space-between; /* 让左右两边分开对齐 */
   gap: 20px; /* 这一行很关键：设置列与列之间的间距 */

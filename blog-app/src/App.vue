@@ -55,11 +55,11 @@ export default {
 	code::selection {background:#444444;color: #FFFFFF;}
 
 #app {
-  background-image: url('../static/img/anime-sunset-art-wallpaper-2560x1080_14.jpg');
+/*  background-image: url('../static/img/anime-sunset-art-wallpaper-2560x1080_14.jpg');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* 固定背景，不隨內容滾動 */
-  background-repeat: no-repeat;
+  background-attachment: fixed; !* 固定背景，不隨內容滾動 *!
+  background-repeat: no-repeat;*/
 }
 
 a {
