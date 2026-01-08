@@ -6,7 +6,7 @@ export function getMAC() {
     method: 'post',
   })
 }
-
+// 获取文章接口
 export function getArticles(query, page,token) {
   return request({
 	headers: {'Authorization': token},
@@ -24,21 +24,21 @@ export function getArticles(query, page,token) {
     }
   })
 }
-
+// 获取热门文章接口
 export function getHotArtices() {
   return request({
     url: '/articles/hot',
     method: 'post'
   })
 }
-
+// 获取最新文章接口
 export function getNewArtices() {
   return request({
     url: '/articles/new',
     method: 'post'
   })
 }
-
+// 查看文章接口
 export function viewArticle(id,token) {
   return request({
 	headers: {'Authorization': token},
@@ -46,7 +46,7 @@ export function viewArticle(id,token) {
     method: 'post'
   })
 }
-
+// 获取分类下的文章接口
 export function getArticlesByCategory(id) {
   return request({
     url: `/articles/category/${id}`,
@@ -61,7 +61,7 @@ export function getArticlesByTag(id) {
   })
 }
 
-
+// 发布文章接口
 export function publishArticle(article,token) {
   return request({
     headers: {'Authorization': token},
@@ -70,14 +70,14 @@ export function publishArticle(article,token) {
     data: article
   })
 }
-
+// 获取文章列表接口
 export function listarticles() {
   return request({
     url: '/articles/listarticles',
     method: 'post'
   })
 }
-
+// 获取文章详情接口
 export function getArticleById(id) {
   return request({
     url: `/articles/${id}`,
@@ -86,7 +86,7 @@ export function getArticleById(id) {
 }
 
 
-
+// 获取文章列表数量接口
 export function getListArticleCount(token) {
   return request({
 	headers: {'Authorization': token},

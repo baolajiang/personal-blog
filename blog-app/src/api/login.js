@@ -1,5 +1,5 @@
 import request from '@/request'
-
+// 登录接口
 export function login(account, password) {
   const data = {
     account,
@@ -28,16 +28,20 @@ export function getUserInfo(token) {
     method: 'get'
   })
 }
-
-export function register(account, nickname, password) {
-  const data = {
-    account,
-    nickname,
-    password
-  }
+// 注册接口
+export function register(data) {
   return request({
     url: '/register',
     method: 'post',
-    data
+    data // 简写为 data 原行 data: data
+  })
+}
+
+// 发送验证码接口
+export function sendCode(email) {
+  return request({
+    url: '/register/sendCode',
+    method: 'post',
+    data: { email }
   })
 }

@@ -12,4 +12,6 @@ public class LoginParam {
     private String nickname;
 
     private String email;
+
+    private String code; // 新增验证码字段
 }

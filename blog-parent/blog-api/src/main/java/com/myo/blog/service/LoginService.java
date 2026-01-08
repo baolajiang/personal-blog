@@ -38,4 +38,6 @@ public interface LoginService {
      * @param userId
      */
     void updateLoginInfo(Long userId);
+    // 发送验证码接口定义
+    Result sendEmailCode(String email);
 }

@@ -161,7 +161,7 @@
                 <div class="m-auth-actions"><span @click="logoutAndClose">登出帳戶</span></div>
               </template>
               <template v-else>
-                <div class="m-login-box"><div class="m-login-btn" @click="navTo('/login')">登入</div><div class="m-register-btn" @click="navTo('/register')">註冊</div></div>
+                <div class="m-login-box"><div class="m-login-btn" @click="navTo('/login')">登入</div><div class="m-register-btn" @click="register">註冊</div></div>
               </template>
             </div>
             <div class="mobile-divider mobile-item"></div>
@@ -408,7 +408,12 @@ export default {
     logoutAndClose() { this.$store.dispatch('logout').then(() => { this.$router.push({path: '/'}); this.closeMobileMenu(); }); },
     logout() { this.closeAllPanels(); this.$store.dispatch('logout').then(() => { this.$router.push({path: '/'}) }) },
     login() { this.closeAllPanels(); this.$router.push({path: '/login'}) },
-    register() { this.closeAllPanels(); this.$router.push({path: '/register'}) },
+    register() {
+      this.closeAllPanels();
+      this.closeMobileMenu(); // 確保手機端點擊也能關閉菜單
+      this.$router.push({
+        path: '/register'
+      }) },
     enterMobileMenu(el, done) { gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.4 }); const items = el.querySelectorAll('.mobile-item'); gsap.fromTo(items, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: "power2.out", onComplete: done }); gsap.fromTo(el.querySelector('.menu-bg-moon'), { rotation: -30, opacity: 0, scale: 0.8 }, { rotation: 0, opacity: 0.1, scale: 1, duration: 1, ease: "power2.out" }); },
     leaveMobileMenu(el, done) { gsap.to(el, { opacity: 0, duration: 0.3, onComplete: done }); },
   }
