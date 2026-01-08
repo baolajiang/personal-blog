@@ -1,26 +1,27 @@
 <template>
-  <div class="moon-library-container" @mousemove="handleMouseMove">
+  <div class="moon-library-container">
 
     <div class="bg-deep-night"></div>
-    <div class="bg-vignette"></div> <div class="svg-bg-layer" ref="svgLayer">
-    <svg class="svg-canvas" viewBox="0 0 800 800">
-      <defs>
-        <linearGradient id="moonGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style="stop-color:#b088ff;stop-opacity:0.2" />
-          <stop offset="100%" style="stop-color:#d45d79;stop-opacity:0.0" />
-        </linearGradient>
-      </defs>
+    <div class="bg-vignette"></div>
+    <div class="svg-bg-layer" ref="svgLayer">
+      <svg class="svg-canvas" viewBox="0 0 800 800">
+        <defs>
+          <linearGradient id="moonGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#b088ff;stop-opacity:0.2" />
+            <stop offset="100%" style="stop-color:#d45d79;stop-opacity:0.0" />
+          </linearGradient>
+        </defs>
 
-      <g class="magic-circle spin-slow" opacity="0.15">
-        <circle cx="400" cy="400" r="350" stroke="#b088ff" stroke-width="1" fill="none" stroke-dasharray="20,10" />
-        <circle cx="400" cy="400" r="300" stroke="#b088ff" stroke-width="2" fill="none" />
-        <polygon points="400,100 660,550 140,550" stroke="#b088ff" stroke-width="1" fill="none" />
-        <polygon points="400,700 660,250 140,250" stroke="#b088ff" stroke-width="1" fill="none" />
-      </g>
+        <g class="magic-circle spin-slow" opacity="0.15">
+          <circle cx="400" cy="400" r="350" stroke="#b088ff" stroke-width="1" fill="none" stroke-dasharray="20,10" />
+          <circle cx="400" cy="400" r="300" stroke="#b088ff" stroke-width="2" fill="none" />
+          <polygon points="400,100 660,550 140,550" stroke="#b088ff" stroke-width="1" fill="none" />
+          <polygon points="400,700 660,250 140,250" stroke="#b088ff" stroke-width="1" fill="none" />
+        </g>
 
-      <path d="M-100,800 Q400,200 900,800" fill="none" stroke="url(#moonGrad)" stroke-width="2" opacity="0.5" />
-    </svg>
-  </div>
+        <path d="M-100,800 Q400,200 900,800" fill="none" stroke="url(#moonGrad)" stroke-width="2" opacity="0.5" />
+      </svg>
+    </div>
 
     <div class="floating-layer">
       <div v-for="n in 6" :key="'book-'+n" class="float-item book" :style="getRandomStyle('book')">
@@ -150,7 +151,7 @@ export default {
       return style;
     },
 
-    // === 交互动画 ===
+    // === 修改点 3：恢复了菜单交互动画 (onHover/onLeave) ===
     onHover(e) {
       // 悬停：左侧条变长，文字变色
       gsap.to(e.currentTarget.querySelector('.nav-bar'), { height: '100%', backgroundColor: '#ffd700', duration: 0.3 });
@@ -165,19 +166,12 @@ export default {
       gsap.to(e.currentTarget.querySelector('.hover-spark'), { opacity: 0, scale: 0, rotation: 0, duration: 0.3 });
     },
 
-    // === 视差效果 ===
-    handleMouseMove(e) {
-      const x = (e.clientX / window.innerWidth - 0.5);
-      const y = (e.clientY / window.innerHeight - 0.5);
-
-      gsap.to(this.$refs.content, { x: x * 15, y: y * 15, duration: 1.5 });
-      gsap.to(this.$refs.svgLayer, { x: x * 30, y: y * 30, rotation: x * 2, duration: 2 });
-      gsap.to('.floating-layer', { x: -x * 40, y: -y * 40, duration: 2 }); // 反向移动
-    },
+    // 注意：删除了 handleMouseMove 方法，因为不再需要视差效果
 
     // === 进场动画 ===
     entranceAnim() {
       const tl = gsap.timeline();
+      // 这里 from 里的 opacity: 0 是正确的，它是让元素从“不可见”渐变到“可见”
       tl.from('.content-wrapper', { x: -50, opacity: 0, duration: 1.2, ease: "power3.out" })
         .from('.avatar-core', { scale: 0, rotation: -90, duration: 1, ease: "back.out(1.5)" }, "-=0.8")
         .from('.seal-ring', { scale: 1.5, opacity: 0, rotation: 180, duration: 1.2 }, "-=0.8")
@@ -203,7 +197,6 @@ export default {
 /* 1. 背景 */
 .bg-deep-night {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  /* 帕秋莉风格：深紫 -> 暗红渐变 */
   background: radial-gradient(circle at 70% 30%, #3e2045 0%, #1a1226 60%, #0d0814 100%);
   z-index: 0;
 }
@@ -249,7 +242,6 @@ export default {
 /* 3. 左侧内容 (关键布局) */
 .content-wrapper {
   position: absolute;
-  /* 左侧 10% 悬浮 */
   left: 10%; top: 50%; transform: translateY(-50%);
   z-index: 10;
   display: flex; flex-direction: column; align-items: flex-start;
@@ -315,12 +307,15 @@ export default {
   width: 200px; cursor: pointer;
   overflow: hidden; /* 遮住装饰条 */
 }
+
+/* 装饰条（默认高度0，由GSAP控制变长） */
 .nav-bar {
   position: absolute; left: 0; top: 0; width: 3px; height: 0%;
   background-color: transparent; transition: height 0.3s;
 }
 .nav-icon { font-size: 1.2rem; color: #b088ff; transition: all 0.3s; }
 .nav-text { font-size: 1rem; color: #ccc; font-weight: 600; letter-spacing: 1px; transition: all 0.3s; }
+/* 闪光特效（默认opacity 0，由GSAP控制显示） */
 .hover-spark {
   position: absolute; right: 20px; font-size: 0.8rem; opacity: 0;
   transition: all 0.3s;
