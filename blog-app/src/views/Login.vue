@@ -156,6 +156,7 @@ export default {
   }
 ,
   methods: {
+    // 切换卡片显示状态
     flipCard(toBack) {
       this.isFlipped = toBack;
       gsap.to(this.$refs.lunaCard, {
@@ -266,7 +267,7 @@ export default {
 }
 .scene {
   width: 380px;
-  height: 580px; /* 因为加了字段，稍微拉长一点高度 */
+  height: 700px; /* 因为加了字段，稍微拉长一点高度 */
   perspective: 1500px;
   z-index: 10;
 }
