@@ -1,5 +1,6 @@
 package com.myo.blog.common.aop;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.myo.blog.dao.mapper.IpBlacklistMapper;
 import com.myo.blog.dao.pojo.IpBlacklist;
 import com.myo.blog.entity.ErrorCode;
@@ -98,13 +99,24 @@ public class RateLimitAspect {
                     // 执行封禁
                     redisTemplate.opsForValue().set("BAN:IP:" + ipAddr, banInfo);
 
-                    // 将 IP 加入黑名单
 
-                    IpBlacklist blacklist = new IpBlacklist();
-                    blacklist.setIp(ipAddr);
-                    blacklist.setCreateDate(System.currentTimeMillis());
-                    blacklist.setReason("触发限流自动封禁: 1小时内" + violations + "次");
-                    ipBlacklistMapper.insert(blacklist);
+                    // 将 IP 加入黑名单（先检查是否已存在）
+                    try {
+                        // 先查询是否已存在
+                        Long count = ipBlacklistMapper.selectCount(new LambdaQueryWrapper<IpBlacklist>().eq(IpBlacklist::getIp, ipAddr));
+                        if (count == 0) {
+                            IpBlacklist blacklist = new IpBlacklist();
+                            blacklist.setIp(ipAddr);
+                            blacklist.setCreateDate(System.currentTimeMillis());
+                            blacklist.setReason("触发限流自动封禁: 1小时内" + violations + "次");
+                            ipBlacklistMapper.insert(blacklist);
+                            log.info(">>> IP [{}] 已成功加入MySQL黑名单", ipAddr);
+                        } else {
+                            log.info(">>> IP [{}] 已在MySQL黑名单中，跳过重复插入", ipAddr);
+                        }
+                    } catch (Exception e) {
+                        log.error("IP黑名单入库失败: {}", e.getMessage());
+                    }
 
                     redisTemplate.delete(violationKey);
 

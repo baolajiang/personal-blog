@@ -1,20 +1,18 @@
 package com.myo.blog.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.myo.blog.dao.mapper.IpBlacklistMapper;
+import com.myo.blog.dao.pojo.IpBlacklist;
 import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.Result;
+import com.myo.blog.entity.params.PageParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * 管理员接口
- * 提供封禁、解封 IP 等管理员操作
- * 1. 封禁 IP：将指定 IP 添加到全局 IP 黑名单中，拒绝其访问。
- * 2. 解封 IP：将指定 IP 从全局 IP 黑名单中移除，允许其访问。
- */
+import java.util.List;
+
 @RestController
 @RequestMapping("admin")
 public class AdminController {
@@ -22,20 +20,65 @@ public class AdminController {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    // 封禁 IP 接口 (记得加上管理员权限校验，别让普通人调)
+    @Autowired
+    private IpBlacklistMapper ipBlacklistMapper;
+
+    /**
+     * 1. 手动封禁 IP
+     */
     @PostMapping("ban")
     public Result banIp(@RequestParam String ip) {
-        redisTemplate.opsForSet().add("GLOBAL_IP_BLACKLIST", ip);
-        return Result.success("已封禁 IP: " + ip);
+        // 1. 写入 Redis (立刻生效)
+        redisTemplate.opsForValue().set("BAN:IP:" + ip, "Manual Ban by Admin");
+
+        // 2. 写入 MySQL (持久化)
+        // 先判断是否存在，防止重复插入报错
+        Long count = ipBlacklistMapper.selectCount(new LambdaQueryWrapper<IpBlacklist>().eq(IpBlacklist::getIp, ip));
+        if (count == 0) {
+            IpBlacklist blacklist = new IpBlacklist();
+            blacklist.setIp(ip);
+            blacklist.setCreateDate(System.currentTimeMillis());
+            blacklist.setReason("管理员手动封禁");
+            ipBlacklistMapper.insert(blacklist);
+        }
+
+        return Result.success("已成功封禁 IP: " + ip);
     }
 
-    // 管理员手动解封
+    /**
+     * 2. 手动解封 IP
+     * 同时删除 Redis 和 MySQL 中的记录
+     */
     @PostMapping("unban")
     public Result unbanIp(@RequestParam String ip) {
-        Boolean result = redisTemplate.delete("BAN:IP:" + ip);
-        if (Boolean.TRUE.equals(result)) {
+        // 1. 删 Redis
+        Boolean redisDeleted = redisTemplate.delete("BAN:IP:" + ip);
+
+        // 2. 删 MySQL
+        int dbDeleted = ipBlacklistMapper.delete(new LambdaQueryWrapper<IpBlacklist>().eq(IpBlacklist::getIp, ip));
+
+        if (Boolean.TRUE.equals(redisDeleted) || dbDeleted > 0) {
             return Result.success("已成功解除 IP [" + ip + "] 的封禁");
         }
-        return Result.fail(ErrorCode.OPERATION_FAILED.getCode(), "该 IP 未被封禁或解封失败");
+        return Result.fail(ErrorCode.OPERATION_FAILED.getCode(), "该 IP 未被封禁或已解封");
+    }
+
+    /**
+     * 3. 查询黑名单列表 (支持分页)
+     * 方便管理员在后台查看当前封禁了哪些人
+     */
+    @PostMapping("blacklist")
+    public Result listBlacklist(@RequestBody PageParams pageParams) {
+        // 创建分页对象 (当前页, 每页条数)
+        Page<IpBlacklist> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+
+        // 执行查询 (按时间倒序排列，新封的在前面)
+        LambdaQueryWrapper<IpBlacklist> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(IpBlacklist::getCreateDate);
+
+        Page<IpBlacklist> ipBlacklistPage = ipBlacklistMapper.selectPage(page, queryWrapper);
+
+        // 直接返回分页结果
+        return Result.success(ipBlacklistPage);
     }
 }
