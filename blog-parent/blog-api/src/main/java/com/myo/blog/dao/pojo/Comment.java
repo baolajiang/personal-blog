@@ -2,6 +2,9 @@ package com.myo.blog.dao.pojo;
 
 import lombok.Data;
 
+/**
+ * 评论
+ */
 @Data
 public class Comment {
 

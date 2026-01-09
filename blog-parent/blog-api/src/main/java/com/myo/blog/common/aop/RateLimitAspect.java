@@ -1,5 +1,7 @@
 package com.myo.blog.common.aop;
 
+import com.myo.blog.dao.mapper.IpBlacklistMapper;
+import com.myo.blog.dao.pojo.IpBlacklist;
 import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.Result;
 import com.myo.blog.service.MailService; // 引入邮件服务
@@ -37,13 +39,18 @@ public class RateLimitAspect {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    // 1. 【新增】注入邮件服务
+    // 注入邮件服务
     @Autowired
     private MailService mailService;
 
-    // 2. 【新增】读取管理员邮箱（这里默认发给自己，也可以配置其他邮箱）
+    // 注入 IP 黑名单映射器
+    @Autowired
+    private IpBlacklistMapper ipBlacklistMapper;
+
+    // 读取管理员邮箱（这里默认发给自己，也可以配置其他邮箱）
     @Value("${spring.mail.username}")
     private String adminEmail;
+
 
     @Around("@annotation(com.myo.blog.common.aop.RateLimit)")
     public Object interceptor(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -88,11 +95,20 @@ public class RateLimitAspect {
                     String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                     String banInfo = String.format("Time:%s, Count:%d, Reason:Malicious Attack", nowStr, violations);
 
-                    // 1. 执行封禁
+                    // 执行封禁
                     redisTemplate.opsForValue().set("BAN:IP:" + ipAddr, banInfo);
+
+                    // 将 IP 加入黑名单
+
+                    IpBlacklist blacklist = new IpBlacklist();
+                    blacklist.setIp(ipAddr);
+                    blacklist.setCreateDate(System.currentTimeMillis());
+                    blacklist.setReason("触发限流自动封禁: 1小时内" + violations + "次");
+                    ipBlacklistMapper.insert(blacklist);
+
                     redisTemplate.delete(violationKey);
 
-                    // 2. 【新增】发送管理员报警邮件
+                    // 发送管理员报警邮件
                     sendAlertEmail(ipAddr, violations, nowStr);
 
                     return Result.fail(ErrorCode.IP_BANNED.getCode(), ErrorCode.IP_BANNED.getMsg());
