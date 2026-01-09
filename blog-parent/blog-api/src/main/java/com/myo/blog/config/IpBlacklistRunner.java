@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 项目启动时执行：将数据库中的黑名单同步到 Redis
+ * 项目启动时执行：将 MySQL 数据库中的黑名单同步到 Redis 缓存中
  */
 @Slf4j
 @Component
