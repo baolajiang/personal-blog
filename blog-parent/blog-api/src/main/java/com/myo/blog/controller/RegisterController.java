@@ -12,23 +12,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("register")
+/**
+ * 注册控制器
+ */
 public class RegisterController {
 
     @Autowired
     private LoginService loginService;
-    //限制 60 秒内只能请求 1 次
-    @RateLimit(time = 60, count = 1, msg = "验证码发送太频繁，请1分钟后再试")
-    @PostMapping
-    public Result register(@RequestBody LoginParam loginParam){
 
-        //sso 单点登录，后期如果把登录注册功能 提出去（单独的服务，可以独立提供接口服务）
-        return loginService.register(loginParam);
-    }
-    //限制 60 秒内只能尝试注册 2 次
-    @RateLimit(time = 60, count = 2, msg = "注册尝试次数过多")
+    // 1分钟1次，防止邮件轰炸
+    @RateLimit(time = 60, count = 1, msg = "验证码发送太频繁，请稍后再试")
     @PostMapping("sendCode")
     public Result sendCode(@RequestBody LoginParam loginParam) {
         return loginService.sendEmailCode(loginParam.getEmail());
     }
 
+    // 1分钟5次，防止批量注册
+    @RateLimit(time = 60, count = 5, msg = "注册太频繁")
+    @PostMapping
+    public Result register(@RequestBody LoginParam loginParam){
+        return loginService.register(loginParam);
+    }
 }

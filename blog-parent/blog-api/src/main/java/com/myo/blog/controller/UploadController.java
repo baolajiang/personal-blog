@@ -22,8 +22,8 @@ import java.util.UUID;
 public class UploadController {
 
 
-    // 通用上传限制 1分钟10次
-    @RateLimit(time = 60, count = 10, msg = "上传过于频繁")
+    // 1分钟20张，防恶意填满磁盘
+    @RateLimit(time = 60, count = 20, msg = "上传过于频繁")
     @PostMapping
     public Result upload(@RequestParam("image") MultipartFile file){
         //原始文件名称 比如 aa.png
