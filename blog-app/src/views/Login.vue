@@ -2,10 +2,10 @@
   <div id="login" v-title data-title="月之别邸 - 契约">
     <div class="login-bg"></div>
 
-    <div class="scene">
+    <div class="scene" :style="{ height: isFlipped ? '700px' : '520px' }">
       <div class="luna-card" ref="lunaCard">
 
-        <div class="card-face face-front">
+        <div class="card-face face-front" :style="{ zIndex: isFlipped ? 0 : 2 }">
           <div class="card-content">
             <div class="header-deco">
               <span class="moon-icon">☾</span>
@@ -43,7 +43,7 @@
           </div>
         </div>
 
-        <div class="card-face face-back">
+        <div class="card-face face-back" :style="{ zIndex: isFlipped ? 2 : 0 }">
           <div class="card-content">
             <div class="header-deco">
               <span class="sakura-icon">❀</span>
@@ -153,8 +153,7 @@ export default {
       // 使用 GSAP 瞬间设置角度到 -180度
       gsap.set(this.$refs.lunaCard, { rotationY: -180 });
     }
-  }
-,
+  },
   methods: {
     // 切换卡片显示状态
     flipCard(toBack) {
@@ -247,7 +246,7 @@ export default {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Serif+SC:wght@300;400;700&display=swap');
 
-/* 保持之前的全部样式不变，只增加验证码按钮的样式 */
+/* 保持之前的全部样式不变 */
 #login {
   width: 100%;
   min-height: 100vh;
@@ -265,12 +264,16 @@ export default {
   background-image: radial-gradient(circle at 50% 30%, #fffaf5 0%, #f0ece5 100%);
   z-index: 0;
 }
+
+/* 修改 4: 添加 transition 和基础宽度，移除固定 height */
 .scene {
   width: 380px;
-  height: 700px; /* 因为加了字段，稍微拉长一点高度 */
+  /* height 由内联样式控制 */
   perspective: 1500px;
   z-index: 10;
+  transition: height 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* 增加弹性动效 */
 }
+
 .luna-card {
   width: 100%;
   height: 100%;
@@ -291,11 +294,11 @@ export default {
   flex-direction: column;
   overflow: hidden;
 }
-.face-front { z-index: 2; transform: rotateY(0deg); }
+.face-front { /* z-index 由内联样式控制 */ transform: rotateY(0deg); }
 .face-back { transform: rotateY(180deg); background: linear-gradient(to bottom, #fffaf5 0%, #fff5f7 100%); }
 
 .card-content {
-  padding: 30px 30px; /* 稍微减小 padding 以容纳更多字段 */
+  padding: 30px 30px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -303,13 +306,19 @@ export default {
   box-sizing: border-box;
 }
 
-/* ... (Header, Title, Form 样式保持之前的) ... */
 .header-deco { display: flex; flex-direction: column; align-items: center; margin-bottom: 15px; color: #d4af37; }
 .moon-icon, .sakura-icon { font-size: 24px; margin-bottom: 5px; }
 .title-en { font-family: 'Playfair Display', serif; font-size: 12px; letter-spacing: 2px; opacity: 0.8; text-transform: uppercase; }
 .main-title { font-size: 24px; font-weight: 700; color: #4a4a4a; margin: 0 0 10px 0; letter-spacing: 1px; }
 .sub-title { font-size: 12px; color: #999; margin-bottom: 20px; font-weight: 300; }
-.luna-form { width: 100%; flex: 1; }
+
+/* 修改 5: 移除 flex: 1，让内容紧凑，避免登录页按钮沉底 */
+.luna-form {
+  width: 100%;
+  /* flex: 1;  <-- 删除这行 */
+  margin-bottom: 20px; /* 增加底部间距 */
+}
+
 .input-wrapper { position: relative; width: 100%; margin-bottom: 5px; }
 .luna-input {
   width: 100%; padding: 10px 0; font-family: 'Noto Serif SC', serif; font-size: 14px;
@@ -320,7 +329,6 @@ export default {
 .focus-border { position: absolute; bottom: 0; left: 0; width: 0; height: 1px; background-color: #d4af37; transition: width 0.4s ease; }
 .luna-input:focus ~ .focus-border { width: 100%; }
 
-/* ===== 新增：发送验证码按钮样式 ===== */
 .verify-wrapper { position: relative; }
 .send-code-btn {
   position: absolute;
@@ -336,11 +344,12 @@ export default {
 .send-code-btn:hover { color: #b8860b; font-weight: bold; }
 .send-code-btn.disabled { color: #ccc; cursor: not-allowed; }
 
-/* Actions & Footer */
 .actions { width: 100%; margin-top: 5px; }
 .luna-btn { width: 100%; padding: 12px 0; text-align: center; cursor: pointer; transition: all 0.3s; border-radius: 4px; font-size: 14px; font-weight: 700; letter-spacing: 2px; }
 .luna-btn.primary { background-color: #d4af37; color: #fff; box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3); }
 .luna-btn.primary:hover { background-color: #c5a028; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(212, 175, 55, 0.4); }
+
+/* Footer Switch 保持沉底 */
 .footer-switch { margin-top: auto; padding-top: 15px; font-size: 12px; color: #888; display: flex; align-items: center; justify-content: center; }
 .switch-btn { color: #d4af37; margin-left: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; border-bottom: 1px dashed transparent; }
 .switch-btn:hover { color: #b8860b; border-bottom-color: #b8860b; }
