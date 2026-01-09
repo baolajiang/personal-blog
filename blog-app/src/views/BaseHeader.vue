@@ -260,7 +260,7 @@ export default {
         // Gravatar 要求：去除首尾空格 -> 转小写 -> 生成 MD5
         const hash = md5(email.trim().toLowerCase());
         // d=identicon 表示如果没头像，自动生成一个几何图案
-        // 你也可以换成:
+        // 也可以换成:
         // d=monsterid (小怪兽)
         // d=wavatar (卡通脸)
         // d=retro (复古像素)

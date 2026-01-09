@@ -280,7 +280,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     public List<SysUser> findUserByIds(Collection<Long> ids) {
-        // 使用你已經注入的 sysUserMapper，而不是 baseMapper
+        // 使用已經注入的 sysUserMapper，而不是 baseMapper
         return sysUserMapper.selectBatchIds(ids);
     }
 

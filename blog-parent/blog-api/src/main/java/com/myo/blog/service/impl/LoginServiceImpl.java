@@ -3,6 +3,7 @@ package com.myo.blog.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.myo.blog.dao.pojo.SysUser;
 import com.myo.blog.service.LoginService;
+import com.myo.blog.service.MailService;
 import com.myo.blog.service.SysUserService;
 import com.myo.blog.utils.HttpContextUtils;
 import com.myo.blog.utils.IpUtils;
@@ -35,9 +36,12 @@ public class LoginServiceImpl implements LoginService {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
-    // 【新增】注入邮件发送器
+    // 注入邮件发送器
     @Autowired
     private JavaMailSender mailSender;
+    // 注入邮件服务类
+    @Autowired
+    private MailService mailService;
 
     // 从配置文件读取发件人，防止硬编码
     @Value("${spring.mail.username}")
@@ -106,32 +110,38 @@ public class LoginServiceImpl implements LoginService {
     }
 
     // ================== 【核心修改区域：发送验证码】 ==================
-
+    /**
+     * 发送验证码接口（优化版）
+     * 1. 生成验证码
+     * 2. 存入 Redis
+     * 3. 唤起异步线程发邮件
+     * 4. 立即返回成功
+     */
     public Result sendEmailCode(String email) {
+
+        // 1. 基础校验：邮箱不能为空
         if (StringUtils.isBlank(email)) {
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "邮箱不能为空");
         }
 
-        // 1. 生成 6 位随机数
+        // 2. 生成 6 位随机数字验证码 (100000 ~ 999999)
         String code = String.valueOf(new Random().nextInt(899999) + 100000);
 
-        // 2. 发送邮件
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail); // 发件人
-            message.setTo(email);       // 收件人
-            message.setSubject("【月之别邸】注册验证码");
-            message.setText("欢迎来到月之别邸，您的注册验证码是：" + code + "。有效期 5 分钟，请勿泄露。");
-            mailSender.send(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Result.fail(999, "邮件发送失败，请检查邮箱地址");
-        }
-
-        // 3. 存入 Redis，Key = REGISTER_CODE_邮箱，有效期 5 分钟
+        // 3. 将验证码存入 Redis
+        // Key 格式：REGISTER_CODE_xxxx@qq.com
+        // 有效期：5 分钟
         redisTemplate.opsForValue().set("REGISTER_CODE_" + email, code, 5, TimeUnit.MINUTES);
 
-        return Result.success("验证码发送成功");
+        // 4. 【核心】调用异步服务发送邮件
+        // 这行代码会立刻返回，不会等待邮件真的发出去
+        mailService.sendMailAsync(
+                email,
+                "【月之别邸】注册验证码",
+                "欢迎来到月之别邸，您的注册验证码是：" + code + "。有效期 5 分钟，请勿泄露。"
+        );
+
+        // 5. 立即告诉前端：处理成功
+        return Result.success("验证码已发送");
     }
 
     // ================== 【核心修改区域：注册逻辑】 ==================

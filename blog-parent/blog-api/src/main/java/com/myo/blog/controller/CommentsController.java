@@ -1,5 +1,6 @@
 package com.myo.blog.controller;
 
+import com.myo.blog.common.aop.RateLimit;
 import com.myo.blog.entity.CommentVo;
 import com.myo.blog.service.CommentsService;
 import com.myo.blog.entity.Result;
@@ -25,7 +26,8 @@ public class CommentsController {
         return commentsService.commentsByArticleId(id);
     }
 
-
+    // 防止刷评论，60秒内只能发1条
+    @RateLimit(time = 60, count = 1, msg = "评论发布太快了，请休息一下")
     @PostMapping("create/change")
     public Result comment(@RequestBody CommentParam commentParam){
         return commentsService.comment(commentParam);

@@ -55,7 +55,7 @@ public class BlogApp {
 
     @Test
     public void testCommentService() {
-        // ⚠️ 注意：这里必须填入你数据库中真实存在的文章ID
+        // ⚠️ 注意：这里必须填入数据库中真实存在的文章ID
         int i=21;
         long l=i;
         Long articleId = l;

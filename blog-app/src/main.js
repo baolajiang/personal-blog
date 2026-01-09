@@ -1,7 +1,7 @@
 
 import Vue from 'vue'
 import App from './App'
-import request from './request' // 引你封装好的 service
+import request from './request' // 引封装好的 service
 import router from './router'
 import store from './store'
 import 'default-passive-events'

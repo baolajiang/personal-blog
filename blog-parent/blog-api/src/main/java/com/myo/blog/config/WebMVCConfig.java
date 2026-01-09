@@ -1,5 +1,6 @@
 package com.myo.blog.config;
 
+import com.myo.blog.handler.IpBlackListInterceptor;
 import com.myo.blog.handler.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMVCConfig implements WebMvcConfigurer {
     @Autowired
     private LoginInterceptor loginInterceptor;//日志拦截
-
+    // 注入黑名单拦截器
+    @Autowired
+    private IpBlackListInterceptor ipBlackListInterceptor;
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         /** 解决跨域问题 **/
@@ -24,6 +27,10 @@ public class WebMVCConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         /* 拦截器配置 */
         //拦截test接口，拦截器主要用途：进行用户登录状态的拦截，日志的拦截等。
+        // 1. 【新增】注册黑名单拦截器 (放在最前面，先过这一关)
+        // addPathPatterns("/**") 表示拦截所有接口
+        registry.addInterceptor(ipBlackListInterceptor)
+                .addPathPatterns("/**");
         registry.addInterceptor(loginInterceptor)
                 /*指定拦截器要拦截的请求(支持*通配符)*/
                 /*.addPathPatterns("/util/*")*/

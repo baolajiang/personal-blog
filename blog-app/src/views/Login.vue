@@ -54,6 +54,15 @@
             <p class="sub-title">以此为证，记录你在这个世界的故事</p>
 
             <el-form ref="registerForm" :model="registerForm" :rules="registerRules" class="luna-form">
+
+
+              <el-form-item prop="nickname">
+                <div class="input-wrapper">
+                  <input class="luna-input" placeholder="行走世间之名 (昵称)" v-model="registerForm.nickname" />
+                  <span class="focus-border"></span>
+                </div>
+              </el-form-item>
+
               <el-form-item prop="account">
                 <div class="input-wrapper">
                   <input class="luna-input" placeholder="拟定名讳 (账号)" v-model="registerForm.account" />
@@ -61,9 +70,9 @@
                 </div>
               </el-form-item>
 
-              <el-form-item prop="nickname">
+              <el-form-item prop="password">
                 <div class="input-wrapper">
-                  <input class="luna-input" placeholder="行走世间之名 (昵称)" v-model="registerForm.nickname" />
+                  <input class="luna-input" placeholder="铭刻言灵 (密码)" type="password" v-model="registerForm.password" autocomplete="new-password" name="registerPassword"/>
                   <span class="focus-border"></span>
                 </div>
               </el-form-item>
@@ -85,12 +94,6 @@
                 </div>
               </el-form-item>
 
-              <el-form-item prop="password">
-                <div class="input-wrapper">
-                  <input class="luna-input" placeholder="铭刻言灵 (密码)" type="password" v-model="registerForm.password" />
-                  <span class="focus-border"></span>
-                </div>
-              </el-form-item>
             </el-form>
 
             <div class="actions">
@@ -187,7 +190,7 @@ export default {
 
       // 调用后端 API
       sendCode(this.registerForm.email).then(res => {
-        this.$myMessage({ content: '验证码已发送，请查收', type: 'success' });
+        this.$myMessage({ content: '验证码已发送，请查收', type: 'success',duration: 3000,offset: 60 });
       }).catch(err => {
         this.$myMessage({ content: err || '发送失败', type: 'error' });
         // 发送失败则重置倒计时

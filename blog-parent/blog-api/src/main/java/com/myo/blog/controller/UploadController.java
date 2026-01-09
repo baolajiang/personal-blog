@@ -1,6 +1,7 @@
 package com.myo.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.myo.blog.common.aop.RateLimit;
 import com.myo.blog.dao.mapper.ArticleMapper;
 import com.myo.blog.dao.pojo.Article;
 
@@ -21,7 +22,8 @@ import java.util.UUID;
 public class UploadController {
 
 
-
+    // 通用上传限制 1分钟10次
+    @RateLimit(time = 60, count = 10, msg = "上传过于频繁")
     @PostMapping
     public Result upload(@RequestParam("image") MultipartFile file){
         //原始文件名称 比如 aa.png
@@ -36,7 +38,8 @@ public class UploadController {
     }
     @Autowired
     private ArticleMapper articleMapper;
-
+    // 通用上传限制 1分钟10次
+    @RateLimit(time = 60, count = 10, msg = "上传过于频繁")
     @PostMapping("file")
     public Result upcover(@RequestParam("image")  MultipartFile file){
         //原始文件名称 比如 aa.png
@@ -72,7 +75,8 @@ public class UploadController {
 
         return Result.fail(20001,"上传失败");
     }
-
+    // 通用上传限制 1分钟10次
+    @RateLimit(time = 60, count = 10, msg = "上传过于频繁")
     @PostMapping("qrcode")
     public Result qrcode(@RequestParam("image") MultipartFile file){
         String originalFilename = file.getOriginalFilename();
@@ -84,6 +88,8 @@ public class UploadController {
 
         return Result.fail(20001,"上传失败");
     }
+    // 通用上传限制 1分钟10次
+    @RateLimit(time = 60, count = 10, msg = "上传过于频繁")
     //修改头像
     @PostMapping("upAvatar")
     public Result upcover4(@RequestParam("image") MultipartFile file){
