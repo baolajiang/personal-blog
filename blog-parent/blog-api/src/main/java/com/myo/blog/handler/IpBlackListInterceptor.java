@@ -42,7 +42,7 @@ public class IpBlackListInterceptor implements HandlerInterceptor {
                 isBanned = true;
             }
         } catch (Exception e) {
-            // 2. 【关键】如果 Redis 挂了(连接失败等)，不要让系统崩，而是降级查 MySQL (安全兜底)
+            // 2. 【关键】如果 Redis 挂了(连接失败等)，不要让系统崩，而是降级查 MySQL (安全兜底),即使Redis挂了，系统仍能正常工作
             log.error("Redis服务异常，自动降级查询数据库黑名单: {}", e.getMessage());
             try {
                 Long count = ipBlacklistMapper.selectCount(new LambdaQueryWrapper<IpBlacklist>().eq(IpBlacklist::getIp, ipAddr));

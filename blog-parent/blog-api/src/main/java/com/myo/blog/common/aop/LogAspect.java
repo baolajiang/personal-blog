@@ -9,63 +9,84 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 @Component
-@Aspect //切面 定义了通知和切点的关系
-@Slf4j//log日志的功能
+@Aspect
+@Slf4j
 public class LogAspect {
 
+    // 定义 TraceId 的 Key
+    private static final String TRACE_ID = "TRACE_ID";
+
     @Pointcut("@annotation(com.myo.blog.common.aop.LogAnnotation)")
-    public void pt(){}
+    public void logPointCut() {}
 
-    //环绕增强
-    @Around("pt()")
-    public Object log(ProceedingJoinPoint joinPoint) throws Throwable {
-        System.out.println(joinPoint);
+    @Around("logPointCut()")
+    public Object around(ProceedingJoinPoint point) throws Throwable {
         long beginTime = System.currentTimeMillis();
-        //执行方法
-        Object result = joinPoint.proceed();
-        //执行时长(毫秒)
-        long time = System.currentTimeMillis() - beginTime;
-        //保存日志
-        recordLog(joinPoint, time);
 
+        // 1. 生成并设置 TraceId (这是全链路监控的核心)
+        String traceId = UUID.randomUUID().toString().replace("-", "");
+        MDC.put(TRACE_ID, traceId);
+
+        Object result = null;
+        try {
+            // 执行业务逻辑
+            result = point.proceed();
+        } finally {
+            // 2. 无论成功失败，都记录日志，并移除 TraceId 防止内存泄漏
+            long time = System.currentTimeMillis() - beginTime;
+            recordLog(point, time, result);
+            MDC.remove(TRACE_ID);
+        }
         return result;
     }
-    //日志
-    private void recordLog(ProceedingJoinPoint joinPoint, long time) {
+
+    private void recordLog(ProceedingJoinPoint joinPoint, long time, Object result) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         LogAnnotation logAnnotation = method.getAnnotation(LogAnnotation.class);
-        log.info("=====================日志开始log start================================");
-        log.info("模块(module):{}",logAnnotation.module());
-        log.info("操作(operation):{}",logAnnotation.operator());
 
-        //请求的方法名
-        String className = joinPoint.getTarget().getClass().getName();
-        String methodName = signature.getName();
-        log.info("请求的方法名(request method):{}",className + "." + methodName + "()");
+        log.info("===================== log start =====================");
 
-//        //请求的参数
-        Object[] args = joinPoint.getArgs();
-        String params = JSON.toJSONString(args[0]);
-        log.info("请求的参数(params):{}",params);
+        // 3. 模块与操作描述
+        log.info("module: {}", logAnnotation.module());
+        log.info("operation: {}", logAnnotation.operator());
 
-        //获取request 设置IP地址
+        // 4. 请求信息
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
-        if(IpUtils.getIpAddr(request).equals("14.150.222.68")||IpUtils.getIpAddr(request).equals("127.0.0.1")){
-            log.info("本人:{}", IpUtils.getIpAddr(request));
-        }else{
-            log.info("访问者ip:{}", IpUtils.getIpAddr(request));
+        log.info("url: {}", request.getRequestURL());
+        log.info("method: {}.{}", signature.getDeclaringTypeName(), signature.getName());
+        log.info("ip: {}", IpUtils.getIpAddr(request));
+
+        // 5. 参数脱敏与打印 (防止密码泄露)
+        Object[] args = joinPoint.getArgs();
+        String params = JSON.toJSONString(args);
+        // 简单脱敏：如果包含 password 字段，替换为 ******
+        if (params.contains("password")) {
+            params = "****** (Desensitized)";
+        }
+        log.info("params: {}", params);
+
+        // 6. 响应结果截断 (防止文章列表等大数据刷屏，极大提升性能)
+        String resultStr = JSON.toJSONString(result);
+        if (resultStr != null && resultStr.length() > 500) {
+            resultStr = resultStr.substring(0, 500) + "... (result too long, truncated)";
+        }
+        log.info("result: {}", resultStr);
+
+        // 7. 性能监控与告警
+        log.info("time: {} ms", time);
+        if (time > 3000) {
+            log.warn("🐢 [SLOW QUERY] 接口执行超过 3秒，请排查性能问题！TraceId: {}", MDC.get(TRACE_ID));
         }
 
-
-
-        log.info("执行时间(excute time) : {} ms",time);
-        log.info("=====================日志结束log end================================");
+        log.info("===================== log end =====================");
     }
 }
