@@ -6,6 +6,13 @@
 .DS_Store
 Thumbs.db
 
+
+# === 日志文件 ===
+logs/
+*.log
+**/logs/
+**/*.log
+
 # === Java 后端 (blog-parent) ===
 **/target/
 *.class
