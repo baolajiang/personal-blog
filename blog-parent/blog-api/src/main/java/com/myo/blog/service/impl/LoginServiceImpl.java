@@ -141,19 +141,23 @@ public class LoginServiceImpl implements LoginService {
      * 4. 立即返回成功
      */
     public Result sendEmailCode(String email) {
+        log.debug("开始发送邮箱验证码 - 邮箱: {}", email);
 
         // 1. 基础校验：邮箱不能为空
         if (StringUtils.isBlank(email)) {
+            log.warn("邮箱验证码发送失败 - 邮箱为空");
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "邮箱不能为空");
         }
 
         // 2. 生成 6 位随机数字验证码 (100000 ~ 999999)
         String code = String.valueOf(new Random().nextInt(899999) + 100000);
+        log.debug("验证码生成完成 - 邮箱: {}, 验证码: {}", email, code);
 
         // 3. 将验证码存入 Redis
         // Key 格式：REGISTER_CODE_xxxx@qq.com
         // 有效期：5 分钟
         redisTemplate.opsForValue().set("REGISTER_CODE_" + email, code, 5, TimeUnit.MINUTES);
+        log.debug("验证码存入Redis完成 - 邮箱: {}, 有效期: 5分钟", email);
 
         // 4. 【核心】调用异步服务发送邮件
         // 这行代码会立刻返回，不会等待邮件真的发出去
@@ -163,9 +167,12 @@ public class LoginServiceImpl implements LoginService {
                 "欢迎来到月之别邸，您的注册验证码是：" + code + "。有效期 5 分钟，请勿泄露。"
         );
 
+        log.info("邮箱验证码发送成功 - 邮箱: {}", email);
+
         // 5. 立即告诉前端：处理成功
         return Result.success("验证码已发送");
     }
+
 
     // ================== 【核心修改区域：注册逻辑】 ==================
     @Override
@@ -176,6 +183,8 @@ public class LoginServiceImpl implements LoginService {
         String email = loginParam.getEmail();
         String code = loginParam.getCode(); // 前端传来的验证码
 
+        log.info("注册请求开始 - 账号: {}, 邮箱: {}, 昵称: {}", account, email, nickname);
+
         // 1. 基础校验
         if (StringUtils.isBlank(account)
                 || StringUtils.isBlank(password)
@@ -183,6 +192,7 @@ public class LoginServiceImpl implements LoginService {
                 || StringUtils.isBlank(email)
                 || StringUtils.isBlank(code) // 必填验证码
         ){
+            log.warn("注册参数校验失败 - 账号: {}, 邮箱: {}, 昵称: {}", account, email, nickname);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(),ErrorCode.PARAMS_ERROR.getMsg());
         }
 
@@ -190,18 +200,23 @@ public class LoginServiceImpl implements LoginService {
         String redisCode = redisTemplate.opsForValue().get("REGISTER_CODE_" + email);
         // 如果 Redis 里没有，说明过期了或者根本没发
         if (StringUtils.isBlank(redisCode)) {
+            log.warn("验证码校验失败 - 邮箱: {}, 原因: 验证码已过期或未获取", email);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "验证码已过期或未获取");
         }
         // 比对验证码
         if (!redisCode.equals(code)) {
+            log.warn("验证码校验失败 - 邮箱: {}, 输入验证码: {}, 正确验证码: {}", email, code, redisCode);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "验证码错误");
         }
+        log.debug("验证码校验成功 - 邮箱: {}", email);
 
         // 3. 校验账号是否已存在
         SysUser sysUser = sysUserService.findUserByAccount(account);
         if (sysUser != null){
+            log.warn("账号已存在 - 账号: {}", account);
             return Result.fail(ErrorCode.ACCOUNT_EXIST.getCode(),"账户已经被注册了");
         }
+        log.debug("账号唯一性校验通过 - 账号: {}", account);
 
         // 4. 执行注册入库
         sysUser = new SysUser();
@@ -221,14 +236,19 @@ public class LoginServiceImpl implements LoginService {
         String ip= IpUtils.getIpAddr(request);
         sysUser.setIpaddr(ip);
         sysUser.setLastIpaddr("");
+
+        log.debug("准备保存用户信息 - 账号: {}, 邮箱: {}, IP: {}", account, email, ip);
         this.sysUserService.save(sysUser);
+        log.info("用户注册成功 - 用户ID: {}, 账号: {}, 邮箱: {}", sysUser.getId(), account, email);
 
         // 5. 注册成功后，删除验证码（防止二次使用）
         redisTemplate.delete("REGISTER_CODE_" + email);
+        log.debug("验证码删除完成 - 邮箱: {}", email);
 
         // 6. 自动登录
         String token = JWTUtils.createToken(sysUser.getId());
         saveTokenToRedis(token, sysUser);
+        log.info("用户自动登录完成 - 用户ID: {}, Token生成成功", sysUser.getId());
 
         return Result.success(token);
     }
