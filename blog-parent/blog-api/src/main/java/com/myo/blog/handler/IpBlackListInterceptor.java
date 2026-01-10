@@ -1,9 +1,13 @@
 package com.myo.blog.handler;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.myo.blog.dao.mapper.IpBlacklistMapper;
+import com.myo.blog.dao.pojo.IpBlacklist;
 import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.Result;
 import com.myo.blog.utils.IpUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -14,38 +18,53 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 
 /**
- * IP 黑名单拦截器 (修正版)
- * 功能：在请求到达 Controller 前，先检查用户 IP 是否在 Redis 黑名单中
- * 如果在，直接拒绝访问，返回自定义错误码 IP_BANNED
+ * IP 黑名单拦截器 (高可用版)
+ * 策略：Redis 优先，数据库兜底
  */
+@Slf4j
 @Component
 public class IpBlackListInterceptor implements HandlerInterceptor {
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
+    @Autowired
+    private IpBlacklistMapper ipBlacklistMapper;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 1. 获取用户真实 IP
         String ipAddr = IpUtils.getIpAddr(request);
+        boolean isBanned = false;
 
-        // 2. 【核心修正】检查 Redis 中是否有这个 Key (BAN:IP:xxx)
-        // 之前的写法 isMember("GLOBAL_IP_BLACKLIST") 是错的，因为我们现在是用独立的 Key 来存封禁信息的
-        Boolean isBanned = redisTemplate.hasKey("BAN:IP:" + ipAddr);
+        try {
+            // 1. 优先查 Redis (速度快)
+            if (redisTemplate.hasKey("BAN:IP:" + ipAddr)) {
+                isBanned = true;
+            }
+        } catch (Exception e) {
+            // 2. 【关键】如果 Redis 挂了(连接失败等)，不要让系统崩，而是降级查 MySQL (安全兜底)
+            log.error("Redis服务异常，自动降级查询数据库黑名单: {}", e.getMessage());
+            try {
+                Long count = ipBlacklistMapper.selectCount(new LambdaQueryWrapper<IpBlacklist>().eq(IpBlacklist::getIp, ipAddr));
+                if (count > 0) {
+                    isBanned = true;
+                }
+            } catch (Exception dbError) {
+                // 如果连数据库都挂了，那就彻底没办法了，只能放行（保证服务可用性）或者报错
+                log.error("数据库查询失败: {}", dbError.getMessage());
+            }
+        }
 
-        if (Boolean.TRUE.equals(isBanned)) {
-            // 3. 如果在黑名单，拒绝访问
+        // 3. 执行拦截
+        if (isBanned) {
             response.setContentType("application/json;charset=utf-8");
             PrintWriter out = response.getWriter();
-
-            // 使用专门定义的 IP_BANNED 错误码
             out.write(JSON.toJSONString(Result.fail(ErrorCode.IP_BANNED.getCode(), "您的IP已被系统永久封禁")));
             out.flush();
             out.close();
-            return false; // 拦截成功，直接打回
+            return false;
         }
 
-        // 4. 不在黑名单，放行
         return true;
     }
 }
