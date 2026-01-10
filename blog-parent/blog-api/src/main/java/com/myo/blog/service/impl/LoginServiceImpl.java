@@ -11,6 +11,7 @@ import com.myo.blog.utils.JWTUtils;
 import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.params.LoginParam;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @Transactional
 public class LoginServiceImpl implements LoginService {
@@ -46,38 +48,59 @@ public class LoginServiceImpl implements LoginService {
     // 从配置文件读取发件人，防止硬编码
     @Value("${spring.mail.username}")
     private String fromEmail;
-
+    // 密码盐值，用于密码加密
     private static final String slat = "myo!@#";
-
+    /**
+     * 登录功能
+     * @param loginParam
+     * @return
+     */
     @Override
     public Result login(LoginParam loginParam) {
         String account = loginParam.getAccount();
         String password = loginParam.getPassword();
+
+        log.debug("开始验证登录信息 - 账号: {}", account);
+
         if (StringUtils.isBlank(account) || StringUtils.isBlank(password)){
+            log.warn("登录参数为空 - 账号: {}, 密码长度: {}", account, password != null ? password.length() : 0);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(),ErrorCode.PARAMS_ERROR.getMsg());
         }
+
         password = DigestUtils.md5Hex(password + slat);
+        log.debug("密码加密完成 - 账号: {}", account);
 
         SysUser sysUser = sysUserService.findUser(account,password);
         if (sysUser == null){
+            log.warn("用户不存在或密码错误 - 账号: {}", account);
             return Result.fail(ErrorCode.ACCOUNT_PWD_NOT_EXIST.getCode(),ErrorCode.ACCOUNT_PWD_NOT_EXIST.getMsg());
         }
+
+        log.info("用户验证成功 - 用户ID: {}, 账号: {}, 昵称: {}", sysUser.getId(), account, sysUser.getNickname());
 
         String token = JWTUtils.createToken(sysUser.getId());
         //更新最后登录IP,并设置登录时间
         updateLoginInfo(sysUser.getId());
         saveTokenToRedis(token, sysUser);
+
+        log.debug("登录信息更新完成 - 用户ID: {}, Token生成成功", sysUser.getId());
         return Result.success(token);
     }
 
+    /**
+     * 更新用户登录信息
+     * @param userId 用户ID
+     */
     public void updateLoginInfo(Long userId){
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip= IpUtils.getIpAddr(request);
+        log.debug("更新用户登录信息 - 用户ID: {}, 登录IP: {}", userId, ip);
         SysUser user = new SysUser();
         user.setId(userId);
         user.setLastIpaddr(ip);
         user.setLastLogin(System.currentTimeMillis());
         this.sysUserService.updateById(user);
+        log.debug("用户登录信息更新完成 - 用户ID: {}", userId);
     }
 
     @Override
