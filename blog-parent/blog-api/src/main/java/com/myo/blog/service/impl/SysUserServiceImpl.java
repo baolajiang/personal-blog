@@ -2,9 +2,9 @@ package com.myo.blog.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.myo.blog.dao.mapper.SysUserMapper;
 import com.myo.blog.dao.pojo.SysUser;
@@ -16,23 +16,18 @@ import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.LoginUserVo;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.UserVo;
-import com.myo.blog.utils.HttpContextUtils;
-import com.myo.blog.utils.IpUtils;
+
 import org.springframework.context.annotation.Lazy;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
-import jakarta.servlet.http.HttpServletRequest;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.myo.blog.dao.mapper.UserTokenMapper; // 引入 Mapper
+import com.myo.blog.dao.pojo.UserToken;         // 引入实体
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -42,11 +37,12 @@ public class SysUserServiceImpl implements SysUserService {
     @Autowired
     private SysUserMapper sysUserMapper;
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
     @Autowired
     @Lazy  // 2. 添加这个注解，打破循环依赖
     private LoginService loginService;
-
+    @Autowired
+    private UserTokenMapper userTokenMapper;
     @Override
     public UserVo findUserVoById(Long id) {
 
@@ -82,7 +78,14 @@ public class SysUserServiceImpl implements SysUserService {
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(SysUser::getAccount,account);
         queryWrapper.eq(SysUser::getPassword,password);
-        queryWrapper.select(SysUser::getAccount,SysUser::getId,SysUser::getAvatar,SysUser::getNickname,SysUser::getMobilePhoneNumber,SysUser::getEmail);
+        queryWrapper.select(SysUser::getAccount,
+                SysUser::getStatus,
+                SysUser::getAdmin,
+                SysUser::getId,
+                SysUser::getAvatar,
+                SysUser::getNickname,
+                SysUser::getMobilePhoneNumber,
+                SysUser::getEmail);
         queryWrapper.last("limit 1");
 
         return sysUserMapper.selectOne(queryWrapper);
@@ -190,7 +193,15 @@ public class SysUserServiceImpl implements SysUserService {
         updateWrapper.eq(SysUser::getId, id);
 
         boolean hasUpdate = false;
-
+        // 定义一个标志位，判断是否需要踢下线
+        boolean needKickout = false;
+        if (StringUtils.isNotBlank(userParam.getStatus())) {
+            updateWrapper.set(SysUser::getStatus, userParam.getStatus());
+            hasUpdate = true;
+            if ("99".equals(userParam.getStatus())) {
+                needKickout = true;
+            }
+        }
         if (StringUtils.isNotBlank(userParam.getNickname())) {
             updateWrapper.set(SysUser::getNickname, userParam.getNickname());
             hasUpdate = true;
@@ -209,14 +220,30 @@ public class SysUserServiceImpl implements SysUserService {
             updateWrapper.set(SysUser::getMobilePhoneNumber, userParam.getMobilePhoneNumber());
             hasUpdate = true;
         }
+        // === 处理封禁逻辑 ===
+        if (StringUtils.isNotBlank(userParam.getStatus())) {
+            updateWrapper.set(SysUser::getStatus, userParam.getStatus());
+            hasUpdate = true;
+
+            // 如果状态是 99 (封禁)，标记为需要踢下线
+            if ("99".equals(userParam.getStatus())) {
+                needKickout = true;
+            }
+        }
+
 
         // 3. 执行数据库更新
         if (hasUpdate) {
             int rows = this.sysUserMapper.update(null, updateWrapper);
 
-            // 4. 【核心修复】Redis 缓存同步
             if (rows > 0) {
-                updateRedisCache(Long.parseLong(id));
+                // 如果是封禁，直接踢下线（删缓存）
+                if (needKickout) {
+                    kickUserOffline(Long.parseLong(id));
+                } else {
+                    // 否则只是更新缓存信息
+                    updateRedisCache(Long.parseLong(id));
+                }
             }
             return rows;
         }
@@ -229,7 +256,7 @@ public class SysUserServiceImpl implements SysUserService {
      */
     private void updateRedisCache(Long userId) {
         // A. 通过反向索引找到 Token
-        String token = redisTemplate.opsForValue().get("USER_TOKEN_" + userId);
+        String token = stringRedisTemplate.opsForValue().get("USER_TOKEN_" + userId);
 
         if (StringUtils.isNotBlank(token)) {
             // B. 从数据库查询最新的用户信息 (确保是全量最新数据)
@@ -238,7 +265,7 @@ public class SysUserServiceImpl implements SysUserService {
             if (newestUser != null) {
                 // C. 覆盖 Redis 中的旧数据 (保持过期时间一致，或重置)
                 // 这里我们简单起见，重置为 3 天，或者读取旧 Key 的 TTL
-                redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(newestUser), 3, TimeUnit.DAYS);
+                stringRedisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(newestUser), 3, TimeUnit.DAYS);
             }
         }
     }
@@ -310,12 +337,86 @@ public class SysUserServiceImpl implements SysUserService {
             // B. 检查是否在线
             // 逻辑：只要 Redis 里有 USER_TOKEN_ID 这个Key，就说明 Token 没过期
             String key = "USER_TOKEN_" + u.getId();
-            Boolean isOnline = redisTemplate.hasKey(key);
+            Boolean isOnline = stringRedisTemplate.hasKey(key);
             u.setOnline(isOnline);
         }
 
         return Result.success(sysUserPage);
     }
+
+
+
+    @Override
+    public Result updateUserStatus(UserParam userParam) {
+        String id = userParam.getId();
+        if (StringUtils.isBlank(id)) {
+            return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "用户ID不能为空");
+        }
+
+        // 校验状态是否为空
+        if (StringUtils.isBlank(userParam.getStatus())) {
+            return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "状态不能为空");
+        }
+
+        try {
+            // 1. 先检查用户是否存在
+            Long userId = Long.parseLong(id);
+            SysUser existingUser = sysUserMapper.selectById(userId);
+            if (existingUser == null) {
+                return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "用户不存在，ID: " + id);
+            }
+
+            // 2. 更新数据库
+            LambdaUpdateWrapper<SysUser> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(SysUser::getId, userId)
+                    .set(SysUser::getStatus, userParam.getStatus());
+
+            int rows = this.sysUserMapper.update(null, updateWrapper);
+
+            if (rows > 0) {
+                // 3. 同步 Redis 缓存
+                updateRedisCache(userId);
+                return Result.success("操作成功");
+            } else {
+                // 添加日志输出，帮助调试
+                System.out.println("数据库更新失败，用户ID: " + userId + ", 状态: " + userParam.getStatus());
+                return Result.fail(ErrorCode.OPERATION_FAILED.getCode(), "操作失败，可能用户不存在或数据未变化");
+            }
+        } catch (NumberFormatException e) {
+            return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "用户ID格式错误: " + id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.fail(ErrorCode.SYSTEM_ERROR.getCode(), "系统异常");
+        }
+    }
+    // 强制踢下线逻辑
+    private void kickUserOffline(Long userId) {
+        // A. 尝试获取 Token
+        String tokenKey = "USER_TOKEN_" + userId;
+        String token = stringRedisTemplate.opsForValue().get(tokenKey);
+
+        // B. 如果 Redis 没拿到，尝试从数据库 UserToken 表拿 (防止漏网之鱼)
+        if (StringUtils.isBlank(token)) {
+            LambdaQueryWrapper<UserToken> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(UserToken::getUserId, userId);
+            UserToken userToken = userTokenMapper.selectOne(queryWrapper);
+            if (userToken != null) {
+                token = userToken.getToken();
+            }
+        }
+
+        // C. 删除 Redis 里的 Token (杀掉会话)
+        if (StringUtils.isNotBlank(token)) {
+            stringRedisTemplate.delete("TOKEN_" + token);
+        }
+        stringRedisTemplate.delete(tokenKey);
+
+        // D. 删除 MySQL 里的 Token (防止复活)
+        LambdaQueryWrapper<UserToken> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(UserToken::getUserId, userId);
+        userTokenMapper.delete(deleteWrapper);
+    }
+
 
 
 
