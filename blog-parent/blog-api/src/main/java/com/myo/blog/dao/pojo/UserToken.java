@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.TableId;
 
 @Data
-@TableName("sys_user_token")
+@TableName("myo_sys_user_token")
 public class UserToken {
     @TableId
     // 这里不需要自增，因为是直接用 userId 作为主键 (1对1关系)
