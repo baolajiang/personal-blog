@@ -12,7 +12,6 @@
       </template>
 
       <el-table :data="tableData" v-loading="loading" style="width: 100%" border stripe>
-
         <el-table-column label="头像" width="70" align="center">
           <template #default="scope">
             <el-avatar :src="scope.row.avatar" shape="square" size="small" />
@@ -22,24 +21,21 @@
         <el-table-column prop="account" label="账号" min-width="120" show-overflow-tooltip />
         <el-table-column prop="nickname" label="昵称" min-width="120" show-overflow-tooltip />
 
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="scope">
-            <el-tag v-if="scope.row.online" type="success" effect="dark" round size="small">
-              在线
-            </el-tag>
-            <el-tag v-else type="info" effect="plain" round size="small">
-              离线
-            </el-tag>
-          </template>
+        <el-table-column prop="email" label="邮箱" min-width="160" show-overflow-tooltip>
+          <template #default="scope">{{ scope.row.email || '未绑定' }}</template>
         </el-table-column>
 
-        <el-table-column label="最近登录IP" width="140" show-overflow-tooltip>
+        <el-table-column prop="mobilePhoneNumber" label="手机号" width="130">
+          <template #default="scope">{{ scope.row.mobilePhoneNumber || '未绑定' }}</template>
+        </el-table-column>
+
+        <el-table-column label="最近登录IP" width="130" show-overflow-tooltip>
           <template #default="scope">
             <div>{{ scope.row.ipaddr || '-' }}</div>
           </template>
         </el-table-column>
 
-        <el-table-column label="最后活跃" width="180">
+        <el-table-column label="最后活跃" width="160">
           <template #default="scope">
             <div v-if="scope.row.lastLogin">
               <div class="time-text">{{ formatTime(scope.row.lastLogin) }}</div>
@@ -49,16 +45,41 @@
           </template>
         </el-table-column>
 
+        <el-table-column label="账号状态" width="100" align="center">
+          <template #default="scope">
+            <el-tag v-if="scope.row.status === '99'" type="danger" effect="dark" round size="small">已封禁</el-tag>
+            <el-tag v-else-if="scope.row.status === '1'" type="warning" effect="dark" round size="small">观察中</el-tag>
+            <el-tag v-else type="success" effect="plain" round size="small">正常</el-tag>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="在线状态" width="100" align="center">
+          <template #default="scope">
+            <el-tag v-if="scope.row.online" type="success" effect="plain" round size="small">在线</el-tag>
+            <el-tag v-else type="info" effect="plain" round size="small">离线</el-tag>
+          </template>
+        </el-table-column>
+
         <el-table-column label="注册时间" width="160">
           <template #default="scope">
             {{ formatTime(scope.row.createDate) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="120" fixed="right" align="center">
-          <template #default="">
-            <el-button link type="primary" size="small">编辑</el-button>
-            <el-button link type="danger" size="small">封禁</el-button>
+        <el-table-column label="操作" width="150" fixed="right" align="center">
+          <template #default="scope">
+            <el-button link type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+
+            <el-button
+                v-if="scope.row.status === '99'"
+                link type="success" size="small"
+                @click="handleStatusChange(scope.row, '0')"
+            >解封</el-button>
+            <el-button
+                v-else
+                link type="danger" size="small"
+                @click="handleStatusChange(scope.row, '99')"
+            >封禁</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -67,9 +88,10 @@
         <el-pagination
             v-model:current-page="queryParams.page"
             v-model:page-size="queryParams.pageSize"
-            :page-sizes="[10, 20, 50]"
-            layout="total, prev, pager, next, jumper"
+            :page-sizes="[5, 10, 20, 50]"
+            layout="total, sizes, prev, pager, next, jumper"
             :total="total"
+            @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
         />
       </div>
@@ -79,52 +101,92 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import request from '../../utils/request'
+import { getUserList, updateUserStatus } from '../../api/user' // 确保这里引用正确
+import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
 
-// 初始化 dayjs
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
 
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
+
 const queryParams = reactive({
   page: 1,
   pageSize: 10
 })
 
-// 获取数据
+const formatTime = (timestamp: number) => {
+  if (!timestamp) return ''
+  return dayjs(timestamp).format('YYYY-MM-DD HH:mm')
+}
+
+const formatRelativeTime = (timestamp: number) => {
+  if (!timestamp) return ''
+  return dayjs(timestamp).fromNow()
+}
+
 const fetchData = async () => {
   loading.value = true
   try {
-    const res: any = await request.post('/admin/user/list', queryParams)
-    if (res.success) {
+    const res: any = await getUserList(queryParams)
+
+
+    if (res.success && res.data) {
       tableData.value = res.data.records
       total.value = res.data.total
+    } else if(res.records) {
+      tableData.value = res.records
+      total.value = res.total
     }
   } catch (error) {
-    console.error(error)
+    console.error('获取用户列表失败', error)
   } finally {
     loading.value = false
   }
 }
 
+const handleSizeChange = (val: number) => {
+  queryParams.pageSize = val
+  fetchData()
+}
 const handleCurrentChange = (val: number) => {
   queryParams.page = val
   fetchData()
 }
 
-// 时间格式化工具
-const formatTime = (time: number) => {
-  if (!time) return ''
-  return dayjs(time).format('YYYY-MM-DD HH:mm')
+const handleStatusChange = (row: any, status: string) => {
+  const actionText = status === '99' ? '封禁' : '解封'
+
+  ElMessageBox.confirm(
+      `确定要${actionText}用户 "${row.nickname}" 吗？`,
+      '提示',
+      { type: 'warning' }
+  ).then(async () => {
+    try {
+      const res: any = await updateUserStatus({
+        id: row.id,
+        status: status
+      })
+      if (res.success) {
+        ElMessage.success(`${actionText}成功`)
+        fetchData()
+      } else {
+        ElMessage.error(res.msg || `${actionText}失败`)
+      }
+    } catch (error) {
+      console.error(error)
+      ElMessage.error('操作异常')
+    }
+  })
 }
-const formatRelativeTime = (time: number) => {
-  if (!time) return ''
-  return dayjs(time).fromNow()
+
+const handleEdit = (row: any) => {
+  console.log('编辑用户', row)
+  ElMessage.info('编辑功能开发中...')
 }
 
 onMounted(() => {
@@ -136,8 +198,9 @@ onMounted(() => {
 .index-container { padding: 20px; }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .subtitle { margin-left: 10px; font-size: 13px; color: #999; }
+.left { display: flex; align-items: center; }
 .pagination-container { margin-top: 20px; display: flex; justify-content: flex-end; }
-.time-text { font-size: 13px; }
-.time-ago { font-size: 12px; color: #999; }
+.time-text { font-size: 13px; line-height: 1.2; }
+.time-ago { font-size: 12px; color: #999; margin-top: 2px; }
 .no-data { color: #ccc; font-size: 12px; }
 </style>

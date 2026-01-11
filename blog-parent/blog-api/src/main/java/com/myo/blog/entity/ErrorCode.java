@@ -10,6 +10,8 @@ public enum  ErrorCode {
     NO_PERMISSION(70001,"无访问权限"),
     SESSION_TIME_OUT(90001,"会话超时"),
     NO_LOGIN(90002,"未登录"),
+    ACCOUNT_DISABLED(90003, "账号已被封禁"),
+
 
     // 新增错误码
     SYSTEM_ERROR(500, "系统异常"),

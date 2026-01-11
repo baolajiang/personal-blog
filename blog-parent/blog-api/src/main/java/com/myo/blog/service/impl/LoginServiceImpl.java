@@ -73,14 +73,25 @@ public class LoginServiceImpl implements LoginService {
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(),ErrorCode.PARAMS_ERROR.getMsg());
         }
 
+
         password = DigestUtils.md5Hex(password + slat);
         log.debug("密码加密完成 - 账号: {}", account);
 
         SysUser sysUser = sysUserService.findUser(account,password);
+        // ================== 账号校验 ==================
         if (sysUser == null){
             log.warn("用户不存在或密码错误 - 账号: {}", account);
             return Result.fail(ErrorCode.ACCOUNT_PWD_NOT_EXIST.getCode(),ErrorCode.ACCOUNT_PWD_NOT_EXIST.getMsg());
         }
+        // ================== 封禁校验 ==================
+        // 假设约定：status 为 "99" 时表示封禁，0 正常 1观察
+        if ("99".equals(sysUser.getStatus())) {
+            log.warn("该账号已被封禁 - 账号: {}", account);
+            return Result.fail(ErrorCode.ACCOUNT_DISABLED.getCode(), "账号已被封禁，请联系管理员");
+        }
+
+
+        log.info("用户验证成功 - 用户ID: {}, 账号: {}, 昵称: {}", sysUser.getId(), account, sysUser.getNickname());
 
         log.info("用户验证成功 - 用户ID: {}, 账号: {}, 昵称: {}", sysUser.getId(), account, sysUser.getNickname());
 

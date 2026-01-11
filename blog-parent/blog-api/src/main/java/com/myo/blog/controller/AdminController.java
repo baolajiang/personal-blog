@@ -8,6 +8,7 @@ import com.myo.blog.dao.pojo.SysUser;
 import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.params.PageParams;
+import com.myo.blog.entity.params.UserParam;
 import com.myo.blog.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -93,5 +94,15 @@ public class AdminController {
 
         return sysUserService.UserList(pageParams);
     }
+
+    /**
+     * 修改用户账号状态 (封禁/解封)
+     */
+    @PostMapping("user/status")
+    public Result updateUserStatus(@RequestBody UserParam userParam) {
+        // 直接调用 Service 层的新方法
+        return sysUserService.updateUserStatus(userParam);
+    }
+
 
 }

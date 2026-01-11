@@ -84,4 +84,11 @@ public interface SysUserService {
      * @return
      */
      Result UserList(PageParams pageParams);
+
+     /**
+     * 更新用户状态
+     * @param userParam
+     * @return
+     */
+     Result updateUserStatus(UserParam userParam);
 }
