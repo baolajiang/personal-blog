@@ -17,4 +17,5 @@ public class UserParam {
     private String avatar;//头像
     private String email;//邮箱
     private String mobilePhoneNumber;//电话
+    private String status;//状态 0-正常 1-警告 99-封禁
 }
