@@ -59,7 +59,7 @@ public class UsersController {
 
     //修改个人资料
     @PostMapping("updateUser")
-    public Result updateUse(@RequestBody UserParam userParam){
+    public Result updateUser(@RequestBody UserParam userParam){
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip = IpUtils.getIpAddr(request);
         String account = userParam.getAccount();
