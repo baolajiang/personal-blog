@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
-@TableName("ms_ip_blacklist")
+@TableName("myo_ip_blacklist")
 /**
  * IP 黑名单
  */
