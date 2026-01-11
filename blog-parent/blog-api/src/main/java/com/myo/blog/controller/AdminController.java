@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.myo.blog.dao.mapper.IpBlacklistMapper;
 import com.myo.blog.dao.pojo.IpBlacklist;
+import com.myo.blog.dao.pojo.SysUser;
 import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.params.PageParams;
+import com.myo.blog.service.SysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +24,10 @@ public class AdminController {
 
     @Autowired
     private IpBlacklistMapper ipBlacklistMapper;
+
+
+    @Autowired
+    private SysUserService sysUserService;
 
     /**
      * 1. 手动封禁 IP
@@ -81,4 +87,11 @@ public class AdminController {
         // 直接返回分页结果
         return Result.success(ipBlacklistPage);
     }
+
+    @PostMapping("user/list")
+    public Result UserList(@RequestBody PageParams pageParams) {
+
+        return sysUserService.UserList(pageParams);
+    }
+
 }

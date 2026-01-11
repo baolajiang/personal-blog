@@ -2,6 +2,7 @@ package com.myo.blog.dao.pojo;
 
 import lombok.Data;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 @Data
 public class SysUser {
 
@@ -37,6 +38,9 @@ public class SysUser {
     private String ipaddr;
 
     private String LastIpaddr;
+
+    @TableField(exist = false) // 表示数据库表里没有这一列
+    private Boolean online;
 
 
 }

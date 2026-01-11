@@ -1,7 +1,10 @@
 package com.myo.blog.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.myo.blog.dao.mapper.UserTokenMapper;
 import com.myo.blog.dao.pojo.SysUser;
+import com.myo.blog.dao.pojo.UserToken;
 import com.myo.blog.service.LoginService;
 import com.myo.blog.service.MailService;
 import com.myo.blog.service.SysUserService;
@@ -17,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,10 @@ public class LoginServiceImpl implements LoginService {
     // 注入邮件服务类
     @Autowired
     private MailService mailService;
+
+    // === 新增注入 UserTokenMapper ===
+    @Autowired
+    private UserTokenMapper userTokenMapper;
 
     // 从配置文件读取发件人，防止硬编码
     @Value("${spring.mail.username}")
@@ -81,7 +87,9 @@ public class LoginServiceImpl implements LoginService {
         String token = JWTUtils.createToken(sysUser.getId());
         //更新最后登录IP,并设置登录时间
         updateLoginInfo(sysUser.getId());
-        saveTokenToRedis(token, sysUser);
+
+        // === 修改：同时保存到 Redis 和 MySQL ===
+        saveToken(token, sysUser);
 
         log.debug("登录信息更新完成 - 用户ID: {}, Token生成成功", sysUser.getId());
         return Result.success(token);
@@ -103,6 +111,9 @@ public class LoginServiceImpl implements LoginService {
         log.debug("用户登录信息更新完成 - 用户ID: {}", userId);
     }
 
+    /**
+     * 校验 Token (包含灾难恢复逻辑)
+     */
     @Override
     public SysUser checkToken(String token) {
         if (StringUtils.isBlank(token)){
@@ -112,22 +123,57 @@ public class LoginServiceImpl implements LoginService {
         if (stringObjectMap == null){
             return null;
         }
+
+        // 1. 先查 Redis
         String userJson = redisTemplate.opsForValue().get("TOKEN_" + token);
-        if (StringUtils.isBlank(userJson)){
+        if (StringUtils.isNotBlank(userJson)){
+            // Redis 命中，正常返回并续期
+            SysUser sysUser = JSON.parseObject(userJson, SysUser.class);
+            redisTemplate.expire("TOKEN_" + token, 3, TimeUnit.DAYS);
+            redisTemplate.expire("USER_TOKEN_" + sysUser.getId(), 3, TimeUnit.DAYS);
+            return sysUser;
+        }
+
+        // 2. Redis 未命中，尝试从数据库恢复 (灾难恢复)
+        return checkTokenFromDb(token);
+    }
+
+    /**
+     * 辅助方法：从数据库恢复 Token
+     */
+    private SysUser checkTokenFromDb(String token) {
+        LambdaQueryWrapper<UserToken> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserToken::getToken, token);
+        UserToken userToken = userTokenMapper.selectOne(wrapper);
+
+        // 如果数据库也没有，或者已过期
+        if (userToken == null || userToken.getExpireTime() < System.currentTimeMillis()) {
             return null;
         }
-        SysUser sysUser = JSON.parseObject(userJson, SysUser.class);
-        redisTemplate.expire("TOKEN_" + token, 3, TimeUnit.DAYS);
-        redisTemplate.expire("USER_TOKEN_" + sysUser.getId(), 3, TimeUnit.DAYS);
+
+        // 数据库有记录 -> 复活 Session
+        Long userId = userToken.getUserId();
+        SysUser sysUser = sysUserService.findUserById(userId);
+
+        // 重新写回 Redis
+        saveTokenToRedis(token, sysUser);
+
+        log.info("触发灾难恢复机制：从数据库恢复了用户会话 - 用户ID: {}", userId);
         return sysUser;
     }
 
     @Override
     public Result logout(String token) {
+        // 先获取用户，方便后续删数据库
         SysUser sysUser = checkToken(token);
+
+        // 1. 删 Redis
         redisTemplate.delete("TOKEN_" + token);
         if (sysUser != null) {
             redisTemplate.delete("USER_TOKEN_" + sysUser.getId());
+
+            // 2. 删 MySQL
+            userTokenMapper.deleteById(sysUser.getId());
         }
         return Result.success(null);
     }
@@ -135,32 +181,21 @@ public class LoginServiceImpl implements LoginService {
     // ================== 【核心修改区域：发送验证码】 ==================
     /**
      * 发送验证码接口（优化版）
-     * 1. 生成验证码
-     * 2. 存入 Redis
-     * 3. 唤起异步线程发邮件
-     * 4. 立即返回成功
      */
     public Result sendEmailCode(String email) {
         log.debug("开始发送邮箱验证码 - 邮箱: {}", email);
 
-        // 1. 基础校验：邮箱不能为空
         if (StringUtils.isBlank(email)) {
             log.warn("邮箱验证码发送失败 - 邮箱为空");
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "邮箱不能为空");
         }
 
-        // 2. 生成 6 位随机数字验证码 (100000 ~ 999999)
         String code = String.valueOf(new Random().nextInt(899999) + 100000);
         log.debug("验证码生成完成 - 邮箱: {}, 验证码: {}", email, code);
 
-        // 3. 将验证码存入 Redis
-        // Key 格式：REGISTER_CODE_xxxx@qq.com
-        // 有效期：5 分钟
         redisTemplate.opsForValue().set("REGISTER_CODE_" + email, code, 5, TimeUnit.MINUTES);
         log.debug("验证码存入Redis完成 - 邮箱: {}, 有效期: 5分钟", email);
 
-        // 4. 【核心】调用异步服务发送邮件
-        // 这行代码会立刻返回，不会等待邮件真的发出去
         mailService.sendMailAsync(
                 email,
                 "【月之别邸】注册验证码",
@@ -168,8 +203,6 @@ public class LoginServiceImpl implements LoginService {
         );
 
         log.info("邮箱验证码发送成功 - 邮箱: {}", email);
-
-        // 5. 立即告诉前端：处理成功
         return Result.success("验证码已发送");
     }
 
@@ -181,36 +214,31 @@ public class LoginServiceImpl implements LoginService {
         String password = loginParam.getPassword();
         String nickname = loginParam.getNickname();
         String email = loginParam.getEmail();
-        String code = loginParam.getCode(); // 前端传来的验证码
+        String code = loginParam.getCode();
 
         log.info("注册请求开始 - 账号: {}, 邮箱: {}, 昵称: {}", account, email, nickname);
 
-        // 1. 基础校验
         if (StringUtils.isBlank(account)
                 || StringUtils.isBlank(password)
                 || StringUtils.isBlank(nickname)
                 || StringUtils.isBlank(email)
-                || StringUtils.isBlank(code) // 必填验证码
+                || StringUtils.isBlank(code)
         ){
             log.warn("注册参数校验失败 - 账号: {}, 邮箱: {}, 昵称: {}", account, email, nickname);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(),ErrorCode.PARAMS_ERROR.getMsg());
         }
 
-        // 2. 【核心】校验验证码
         String redisCode = redisTemplate.opsForValue().get("REGISTER_CODE_" + email);
-        // 如果 Redis 里没有，说明过期了或者根本没发
         if (StringUtils.isBlank(redisCode)) {
             log.warn("验证码校验失败 - 邮箱: {}, 原因: 验证码已过期或未获取", email);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "验证码已过期或未获取");
         }
-        // 比对验证码
         if (!redisCode.equals(code)) {
             log.warn("验证码校验失败 - 邮箱: {}, 输入验证码: {}, 正确验证码: {}", email, code, redisCode);
             return Result.fail(ErrorCode.PARAMS_ERROR.getCode(), "验证码错误");
         }
         log.debug("验证码校验成功 - 邮箱: {}", email);
 
-        // 3. 校验账号是否已存在
         SysUser sysUser = sysUserService.findUserByAccount(account);
         if (sysUser != null){
             log.warn("账号已存在 - 账号: {}", account);
@@ -218,7 +246,6 @@ public class LoginServiceImpl implements LoginService {
         }
         log.debug("账号唯一性校验通过 - 账号: {}", account);
 
-        // 4. 执行注册入库
         sysUser = new SysUser();
         sysUser.setNickname(nickname);
         sysUser.setAccount(account);
@@ -241,13 +268,15 @@ public class LoginServiceImpl implements LoginService {
         this.sysUserService.save(sysUser);
         log.info("用户注册成功 - 用户ID: {}, 账号: {}, 邮箱: {}", sysUser.getId(), account, email);
 
-        // 5. 注册成功后，删除验证码（防止二次使用）
         redisTemplate.delete("REGISTER_CODE_" + email);
         log.debug("验证码删除完成 - 邮箱: {}", email);
 
         // 6. 自动登录
         String token = JWTUtils.createToken(sysUser.getId());
-        saveTokenToRedis(token, sysUser);
+
+        // === 修改：同时保存到 Redis 和 MySQL ===
+        saveToken(token, sysUser);
+
         log.info("用户自动登录完成 - 用户ID: {}, Token生成成功", sysUser.getId());
 
         return Result.success(token);
@@ -255,13 +284,52 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public Result kick(Long userId) {
+        // 1. 尝试从 Redis 获取 Token
         String token = redisTemplate.opsForValue().get("USER_TOKEN_" + userId);
+
+        // 2. 如果 Redis 挂了或空的，尝试从 DB 捞一下 Token (为了能删掉它)
+        if (StringUtils.isBlank(token)) {
+            UserToken userToken = userTokenMapper.selectById(userId);
+            if (userToken != null) {
+                token = userToken.getToken();
+            }
+        }
+
         if (StringUtils.isBlank(token)) {
             return Result.fail(ErrorCode.NO_LOGIN.getCode(), "该用户未登录或已下线");
         }
+
+        // 3. 删 Redis
         redisTemplate.delete("TOKEN_" + token);
         redisTemplate.delete("USER_TOKEN_" + userId);
+
+        // 4. 删 MySQL
+        userTokenMapper.deleteById(userId);
+
         return Result.success("用户已强制下线");
+    }
+
+    /**
+     * 统一保存 Token 到 Redis 和 MySQL
+     */
+    private void saveToken(String token, SysUser sysUser) {
+        // 1. 存 Redis (保持原有的 3 天过期)
+        saveTokenToRedis(token, sysUser);
+
+        // 2. 存 MySQL (作为持久化备份)
+        UserToken userToken = new UserToken();
+        userToken.setUserId(sysUser.getId());
+        userToken.setToken(token);
+        // 过期时间设为 3 天 (毫秒)
+        userToken.setExpireTime(System.currentTimeMillis() + 3L * 24 * 60 * 60 * 1000);
+
+        // 如果存在则更新，不存在则插入
+        UserToken exist = userTokenMapper.selectById(sysUser.getId());
+        if (exist != null) {
+            userTokenMapper.updateById(userToken);
+        } else {
+            userTokenMapper.insert(userToken);
+        }
     }
 
     private void saveTokenToRedis(String token, SysUser sysUser) {

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.myo.blog.dao.pojo.SysUser;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.UserVo;
+import com.myo.blog.entity.params.PageParams;
 import com.myo.blog.entity.params.UserParam;
 import java.util.Collection;
 
@@ -76,4 +77,11 @@ public interface SysUserService {
      * 批量查詢使用者
      */
     List<SysUser> findUserByIds(Collection<Long> ids);
+
+     /**
+     * 分页查询用户列表
+     * @param pageParams
+     * @return
+     */
+     Result UserList(PageParams pageParams);
 }

@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.myo.blog.dao.mapper.SysUserMapper;
 import com.myo.blog.dao.pojo.SysUser;
+import com.myo.blog.entity.params.PageParams;
 import com.myo.blog.entity.params.UserParam;
 import com.myo.blog.service.LoginService;
 import com.myo.blog.service.SysUserService;
@@ -283,6 +285,39 @@ public class SysUserServiceImpl implements SysUserService {
         // 使用已經注入的 sysUserMapper，而不是 baseMapper
         return sysUserMapper.selectBatchIds(ids);
     }
+
+    @Override
+    public Result UserList(PageParams pageParams) {
+        // 1. 分页查询 (按注册时间倒序)
+        Page<SysUser> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(SysUser::getCreateDate);
+
+        Page<SysUser> sysUserPage = sysUserMapper.selectPage(page, queryWrapper);
+        List<SysUser> records = sysUserPage.getRecords();
+
+        if (records.isEmpty()) {
+            return Result.success(sysUserPage);
+        }
+
+        // 2. 遍历处理 (填充在线状态 + 抹除密码)
+        // 简单的循环查 Redis 在分页场景下性能是可以接受的
+        for (SysUser u : records) {
+            // A. 抹除敏感信息
+            u.setPassword(null);
+            u.setSalt(null);
+
+            // B. 检查是否在线
+            // 逻辑：只要 Redis 里有 USER_TOKEN_ID 这个Key，就说明 Token 没过期
+            String key = "USER_TOKEN_" + u.getId();
+            Boolean isOnline = redisTemplate.hasKey(key);
+            u.setOnline(isOnline);
+        }
+
+        return Result.success(sysUserPage);
+    }
+
+
 
 
 }
