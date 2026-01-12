@@ -48,7 +48,7 @@
         <el-table-column label="账号状态" width="100" align="center">
           <template #default="scope">
             <el-tag v-if="scope.row.status === '99'" type="danger">已封禁</el-tag>
-            <el-tag v-else-if="scope.row.status === '1'" type="warning">观察中</el-tag>
+            <el-tag v-else-if="scope.row.status === '1'" type="warning">警告</el-tag>
             <el-tag v-else-if="scope.row.status === '0'" type="success">正常</el-tag>
             <el-tag v-else type="info">未知状态: {{ scope.row.status }}</el-tag>
           </template>
@@ -70,6 +70,7 @@
         <el-table-column label="操作" width="150" fixed="right" align="center">
           <template #default="scope">
             <el-button link type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+
 
             <el-button
                 v-if="scope.row.status === '99'"
@@ -102,7 +103,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getUserList, updateUserStatus } from '../../api/user' // 确保这里引用正确
+import { getUserList, updateUserStatus } from '../../api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -117,7 +118,7 @@ const total = ref(0)
 
 const queryParams = reactive({
   page: 1,
-  pageSize: 10
+  pageSize: 5
 })
 
 const formatTime = (timestamp: number) => {
@@ -134,7 +135,6 @@ const fetchData = async () => {
   loading.value = true
   try {
     const res: any = await getUserList(queryParams)
-
 
     if (res.success && res.data) {
       tableData.value = res.data.records
@@ -173,7 +173,13 @@ const handleStatusChange = (row: any, status: string) => {
         status: status
       })
       if (res.success) {
-        ElMessage.success(`${actionText}成功`)
+        if(status === '99') {
+          ElMessage.error(`${actionText}成功，用户已被封禁`)
+        } else if(status === '0'){
+          ElMessage.success(`${actionText}成功`)
+        }else if(status === '1'){
+          ElMessage.warning(`${actionText}成功，用户警告中`)
+        }
         fetchData()
       } else {
         ElMessage.error(res.msg || `${actionText}失败`)
@@ -189,6 +195,8 @@ const handleEdit = (row: any) => {
   console.log('编辑用户', row)
   ElMessage.info('编辑功能开发中...')
 }
+
+
 
 onMounted(() => {
   fetchData()
