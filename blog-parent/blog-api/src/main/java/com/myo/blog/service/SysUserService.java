@@ -12,7 +12,10 @@ import java.util.Collection;
 
 import java.util.List;
 
-
+/**
+ * 用户服务接口
+ * 定义用户相关的业务逻辑，如查询、注册、登录、更新等
+ */
 public interface SysUserService {
 
     UserVo findUserVoById(Long id);
@@ -91,4 +94,8 @@ public interface SysUserService {
      * @return
      */
      Result updateUserStatus(UserParam userParam);
+
+
+
+
 }
