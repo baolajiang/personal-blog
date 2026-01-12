@@ -24,12 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import com.myo.blog.dao.mapper.UserTokenMapper; // 引入 Mapper
 import com.myo.blog.dao.pojo.UserToken;         // 引入实体
 import java.util.concurrent.TimeUnit;
-
+/**
+ * 用户服务实现类
+ * 处理用户相关的业务逻辑，如查询、注册、登录、更新等
+ */
 @Service
 @Transactional // 2. 类级别开启事务，确保数据一致性
 public class SysUserServiceImpl implements SysUserService {
@@ -395,8 +400,8 @@ public class SysUserServiceImpl implements SysUserService {
             return Result.fail(ErrorCode.SYSTEM_ERROR.getCode(), "系统异常");
         }
     }
-    // ... existing code ...
-    // 强制踢下线逻辑
+
+    // 强制踢下线逻辑（私有方法，供内部调用）
     private void kickUserOffline(Long userId) {
         // A. 尝试获取 Token
         String tokenKey = "USER_TOKEN_" + userId;
@@ -422,6 +427,14 @@ public class SysUserServiceImpl implements SysUserService {
         LambdaQueryWrapper<UserToken> deleteWrapper = new LambdaQueryWrapper<>();
         deleteWrapper.eq(UserToken::getUserId, userId);
         userTokenMapper.delete(deleteWrapper);
+
+        // E. 删除所有相关的缓存Key
+        stringRedisTemplate.delete("USER_STATUS_" + userId);
+        stringRedisTemplate.delete("USER_INFO_" + userId);
+        stringRedisTemplate.delete("ONLINE_USER_" + userId);
+        stringRedisTemplate.delete("USER_PERMISSIONS_" + userId);
+
+        System.out.println("用户 " + userId + " 被强制踢下线，删除所有相关缓存");
     }
 
 
