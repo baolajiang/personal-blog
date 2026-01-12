@@ -15,7 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+// 管理员接口
 @RestController
 @RequestMapping("admin")
 public class AdminController {
@@ -103,6 +103,9 @@ public class AdminController {
         // 直接调用 Service 层的新方法
         return sysUserService.updateUserStatus(userParam);
     }
+
+
+
 
 
 }
