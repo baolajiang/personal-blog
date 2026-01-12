@@ -28,7 +28,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
+/**
+ * 登录服务实现类
+ * 处理用户登录、注册、密码找回等功能
+ */
 @Slf4j
 @Service
 @Transactional
@@ -84,7 +87,7 @@ public class LoginServiceImpl implements LoginService {
             return Result.fail(ErrorCode.ACCOUNT_PWD_NOT_EXIST.getCode(),ErrorCode.ACCOUNT_PWD_NOT_EXIST.getMsg());
         }
         // ================== 封禁校验 ==================
-        // 假设约定：status 为 "99" 时表示封禁，0 正常 1观察
+        // 假设约定：status 为 "99" 时表示封禁，0 正常 1警告
         if ("99".equals(sysUser.getStatus())) {
             log.warn("该账号已被封禁 - 账号: {}", account);
             return Result.fail(ErrorCode.ACCOUNT_DISABLED.getCode(), "账号已被封禁，请联系管理员");
