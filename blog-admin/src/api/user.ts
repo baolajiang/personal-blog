@@ -1,4 +1,7 @@
-// src/api/user.ts
+/**
+ * 用户接口
+ * 处理用户相关的业务逻辑，如查询、注册、登录、更新等
+ */
 import request from '../utils/request'
 
 // 获取用户列表
@@ -10,8 +13,7 @@ export function getUserList(data: any) {
     })
 }
 
-// 修改用户状态 (封禁/解封/观察)
-// 注意：这里把 URL 改成了我们刚才在 AdminController 里写的 /admin/user/status
+// 修改用户状态 (封禁/解封/警告)
 export function updateUserStatus(data: any) {
     return request({
         url: '/admin/user/status',
@@ -19,3 +21,5 @@ export function updateUserStatus(data: any) {
         data
     })
 }
+
+
