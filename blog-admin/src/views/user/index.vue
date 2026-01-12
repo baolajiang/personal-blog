@@ -47,9 +47,10 @@
 
         <el-table-column label="账号状态" width="100" align="center">
           <template #default="scope">
-            <el-tag v-if="scope.row.status === '99'" type="danger" effect="dark" round size="small">已封禁</el-tag>
-            <el-tag v-else-if="scope.row.status === '1'" type="warning" effect="dark" round size="small">观察中</el-tag>
-            <el-tag v-else type="success" effect="plain" round size="small">正常</el-tag>
+            <el-tag v-if="scope.row.status === '99'" type="danger">已封禁</el-tag>
+            <el-tag v-else-if="scope.row.status === '1'" type="warning">观察中</el-tag>
+            <el-tag v-else-if="scope.row.status === '0'" type="success">正常</el-tag>
+            <el-tag v-else type="info">未知状态: {{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>
 

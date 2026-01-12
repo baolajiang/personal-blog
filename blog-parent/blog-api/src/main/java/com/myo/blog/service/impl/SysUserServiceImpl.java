@@ -346,6 +346,7 @@ public class SysUserServiceImpl implements SysUserService {
 
 
 
+    // 更新用户状态（包含强制踢下线）
     @Override
     public Result updateUserStatus(UserParam userParam) {
         String id = userParam.getId();
@@ -375,7 +376,12 @@ public class SysUserServiceImpl implements SysUserService {
 
             if (rows > 0) {
                 // 3. 同步 Redis 缓存
-                updateRedisCache(userId);
+                // 如果是封禁操作，强制踢下线；否则只更新缓存
+                if ("99".equals(userParam.getStatus())) {
+                    kickUserOffline(userId);
+                } else {
+                    updateRedisCache(userId);
+                }
                 return Result.success("操作成功");
             } else {
                 // 添加日志输出，帮助调试
@@ -389,6 +395,7 @@ public class SysUserServiceImpl implements SysUserService {
             return Result.fail(ErrorCode.SYSTEM_ERROR.getCode(), "系统异常");
         }
     }
+    // ... existing code ...
     // 强制踢下线逻辑
     private void kickUserOffline(Long userId) {
         // A. 尝试获取 Token
