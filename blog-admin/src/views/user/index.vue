@@ -57,16 +57,6 @@
           <template #default="scope">
             <el-button link type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
 
-            <el-button
-                v-if="scope.row.status === '99'"
-                link type="success" size="small"
-                @click="handleStatusChange(scope.row, '0')"
-            >解封</el-button>
-            <el-button
-                v-else
-                link type="danger" size="small"
-                @click="handleStatusChange(scope.row, '99')"
-            >封禁</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -147,8 +137,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getUserList, updateUserStatus, updateUser } from '../../api/user'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { getUserList, updateUser } from '../../api/user'
+import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
@@ -221,27 +211,7 @@ const handleCurrentChange = (val: number) => {
   fetchData()
 }
 
-// 快捷状态更改
-const handleStatusChange = (row: any, status: string) => {
-  const actionText = status === '99' ? '封禁' : '解封'
-  ElMessageBox.confirm(
-      `确定要${actionText}用户 "${row.nickname}" 吗？`,
-      '提示',
-      { type: 'warning' }
-  ).then(async () => {
-    try {
-      const res: any = await updateUserStatus({ id: row.id, status: status })
-      if (res.success) {
-        ElMessage.success(`${actionText}成功`)
-        fetchData()
-      } else {
-        ElMessage.error(res.msg || `${actionText}失败`)
-      }
-    } catch (error) {
-      ElMessage.error('操作异常')
-    }
-  })
-}
+
 
 // === 新增/修改后的详情弹窗逻辑 ===
 

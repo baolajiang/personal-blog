@@ -21,5 +21,13 @@ export function updateUserStatus(data: any) {
         data
     })
 }
+// 更新用户信息
+export function updateUser(data: any) {
+    return request({
+        url: '/admin/user/update',
+        method: 'post',
+        data
+    })
+}
 
 
