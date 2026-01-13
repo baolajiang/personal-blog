@@ -31,7 +31,7 @@
 
         <el-table-column label="最近登录IP" width="130" show-overflow-tooltip>
           <template #default="scope">
-            <div>{{ scope.row.ipaddr || '-' }}</div>
+            <div>{{ scope.row.lastIpaddr || '-' }}</div>
           </template>
         </el-table-column>
 
