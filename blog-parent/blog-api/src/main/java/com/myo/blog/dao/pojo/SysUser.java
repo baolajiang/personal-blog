@@ -15,7 +15,7 @@ public class SysUser {
 
     private String account;
 
-    private Integer admin;// 是否是管理员 0-不是 1-是
+
 
     private String avatar;
 
@@ -35,7 +35,7 @@ public class SysUser {
 
     private String salt;
 
-    private String status;
+    private int status;
 
     private String ipaddr;
 

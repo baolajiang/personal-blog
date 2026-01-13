@@ -12,4 +12,8 @@
         WHERE ur.user_id = #{userId}
     </select>
 
+    <insert id="insertUserRole">
+        INSERT INTO myo_sys_user_role (user_id, role_id) VALUES (#{userId}, #{roleId})
+    </insert>
+
 </mapper>

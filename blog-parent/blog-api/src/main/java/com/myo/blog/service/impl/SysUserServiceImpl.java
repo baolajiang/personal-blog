@@ -85,7 +85,6 @@ public class SysUserServiceImpl implements SysUserService {
         queryWrapper.eq(SysUser::getPassword,password);
         queryWrapper.select(SysUser::getAccount,
                 SysUser::getStatus,
-                SysUser::getAdmin,
                 SysUser::getId,
                 SysUser::getAvatar,
                 SysUser::getNickname,

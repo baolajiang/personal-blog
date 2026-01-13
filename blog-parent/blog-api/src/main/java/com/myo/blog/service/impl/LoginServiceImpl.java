@@ -2,6 +2,7 @@ package com.myo.blog.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.myo.blog.dao.mapper.SysUserMapper;
 import com.myo.blog.dao.mapper.UserTokenMapper;
 import com.myo.blog.dao.pojo.SysUser;
 import com.myo.blog.dao.pojo.UserToken;
@@ -39,6 +40,8 @@ public class LoginServiceImpl implements LoginService {
 
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+    @Autowired
+    private SysUserMapper sysUserMapper;
 
     // 注入邮件发送器
     @Autowired
@@ -264,10 +267,10 @@ public class LoginServiceImpl implements LoginService {
         sysUser.setCreateDate(System.currentTimeMillis());
         sysUser.setLastLogin(System.currentTimeMillis());
         sysUser.setAvatar("/static/img/tx.gif");
-        sysUser.setAdmin(0);
+
         sysUser.setDeleted(0);
         sysUser.setSalt("");
-        sysUser.setStatus("");
+        sysUser.setStatus(0);
         sysUser.setEmail(email);
 
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
@@ -276,8 +279,12 @@ public class LoginServiceImpl implements LoginService {
         sysUser.setLastIpaddr("");
 
         log.debug("准备保存用户信息 - 账号: {}, 邮箱: {}, IP: {}", account, email, ip);
+        // 保存用户
         this.sysUserService.save(sysUser);
+        // 假设数据库里 ID=4 是普通用户角色
+        sysUserMapper.insertUserRole(sysUser.getId(), 4L);
         log.info("用户注册成功 - 用户ID: {}, 账号: {}, 邮箱: {}", sysUser.getId(), account, email);
+
 
         redisTemplate.delete("REGISTER_CODE_" + email);
         log.debug("验证码删除完成 - 邮箱: {}", email);
