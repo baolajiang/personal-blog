@@ -322,7 +322,9 @@ public class SysUserServiceImpl implements SysUserService {
     public Result UserList(PageParams pageParams) {
         // 1. 分页查询 (按注册时间倒序)
         Page<SysUser> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
+
         LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+
         queryWrapper.orderByDesc(SysUser::getCreateDate);
 
         Page<SysUser> sysUserPage = sysUserMapper.selectPage(page, queryWrapper);
