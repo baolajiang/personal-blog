@@ -103,6 +103,19 @@ public class AdminController {
         // 直接调用 Service 层的新方法
         return sysUserService.updateUserStatus(userParam);
     }
+    /**
+     * 更新用户信息 (用于编辑功能，可修改昵称、邮箱、手机号、状态等)
+     */
+    @PostMapping("user/update")
+    public Result updateUser(@RequestBody UserParam userParam) {
+        // 复用 Service 层已有的 updateUser 方法
+        // 该方法会处理基本信息更新，如果状态改为封禁(99)还会自动踢下线
+        int count = sysUserService.updateUser(userParam);
+        if (count > 0) {
+            return Result.success("更新成功");
+        }
+        return Result.fail(ErrorCode.OPERATION_FAILED.getCode(), "更新失败");
+    }
 
 
 
