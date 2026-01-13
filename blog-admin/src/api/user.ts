@@ -13,14 +13,7 @@ export function getUserList(data: any) {
     })
 }
 
-// 修改用户状态 (封禁/解封/警告)
-export function updateUserStatus(data: any) {
-    return request({
-        url: '/admin/user/status',
-        method: 'post',
-        data
-    })
-}
+
 // 更新用户信息
 export function updateUser(data: any) {
     return request({
