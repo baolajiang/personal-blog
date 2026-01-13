@@ -9,7 +9,7 @@
       router
   >
     <div class="logo-container">
-      <h2 class="logo-title">MyBlog Admin</h2>
+      <h2 class="logo-title">月之別邸后台管理</h2>
     </div>
 
     <el-menu-item index="/dashboard">

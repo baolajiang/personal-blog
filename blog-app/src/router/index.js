@@ -91,14 +91,17 @@ const router = new Router({
           path: '/:type/:id',
           component: r => require.ensure([], () => r(require('@/views/blog/BlogCategoryTag')), 'blogcategorytag')
         },
-		{
-		  path: '/login',
-		  component: r => require.ensure([], () => r(require('@/views/Login')), 'login')
-		},
-		{
-		  path: '/register',
-		  component: r => require.ensure([], () => r(require('@/views/Login')), 'register')
-		}
+        {
+          path: '/login',
+          component: r => require.ensure([], () => r(require('@/views/Login')), 'login')
+        },
+        {
+          path: '/register',
+          component: r => require.ensure([], () => r(require('@/views/Login')), 'register')
+        },
+
+
+
       ]
     },
 

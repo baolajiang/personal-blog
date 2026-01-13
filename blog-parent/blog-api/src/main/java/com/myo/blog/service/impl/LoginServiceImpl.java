@@ -28,10 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-/**
- * 登录服务实现类
- * 处理用户登录、注册、密码找回等功能
- */
+
 @Slf4j
 @Service
 @Transactional

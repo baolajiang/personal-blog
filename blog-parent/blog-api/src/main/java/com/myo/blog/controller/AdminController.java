@@ -2,6 +2,7 @@ package com.myo.blog.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.myo.blog.common.aop.RequirePermission;
 import com.myo.blog.dao.mapper.IpBlacklistMapper;
 import com.myo.blog.dao.pojo.IpBlacklist;
 import com.myo.blog.dao.pojo.SysUser;
@@ -88,7 +89,11 @@ public class AdminController {
         // 直接返回分页结果
         return Result.success(ipBlacklistPage);
     }
-
+    /**
+     * 查看用户列表
+     * 只要有 'user:list' 权限就能看
+     */
+    @RequirePermission("user:list")
     @PostMapping("user/list")
     public Result UserList(@RequestBody PageParams pageParams) {
 
@@ -97,7 +102,9 @@ public class AdminController {
 
     /**
      * 修改用户账号状态 (封禁/解封)
+     * 只有拥有 'user:ban' 权限的管理员才能调用
      */
+    @RequirePermission("user:ban")
     @PostMapping("user/status")
     public Result updateUserStatus(@RequestBody UserParam userParam) {
         // 直接调用 Service 层的新方法

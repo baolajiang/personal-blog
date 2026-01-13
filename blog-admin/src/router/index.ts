@@ -3,12 +3,6 @@ import Layout from '../layout/index.vue'
 
 const routes: Array<RouteRecordRaw> = [
     {
-        path: '/login',
-        name: 'Login',
-        component: () => import('../views/Login.vue'),
-        meta: { title: '登录' }
-    },
-    {
         path: '/',
         component: Layout,
         redirect: '/dashboard',
@@ -54,7 +48,7 @@ const routes: Array<RouteRecordRaw> = [
             {
                 path: 'user/index',
                 component: () => import('../views/user/index.vue'),
-                meta: { title: '用户列表' }
+                meta: { title: '用户列表', requireAuth: true }
             },
             // === 系统管理 ===
             {
@@ -66,7 +60,10 @@ const routes: Array<RouteRecordRaw> = [
                 path: 'system/log',
                 component: () => import('../views/system/log.vue'),
                 meta: { title: '操作日志' }
-            }
+            },
+
+
+
         ]
     }
 ]
@@ -75,5 +72,9 @@ const router = createRouter({
     history: createWebHistory(),
     routes
 })
+
+
+
+
 
 export default router
