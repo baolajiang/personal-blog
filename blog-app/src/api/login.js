@@ -45,6 +45,13 @@ export function sendCode(email) {
     data: { email }
   })
 }
-
+// 获取登录后台的一次性票据
+export function getTicket(token) {
+  return request({
+    headers: {'Authorization': token}, // 将 Token放入请求头
+    url: '/login/ticket',
+    method: 'post'
+  })
+}
 
 

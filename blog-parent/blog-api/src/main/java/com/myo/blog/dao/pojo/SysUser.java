@@ -35,7 +35,7 @@ public class SysUser {
 
     private String salt;
 
-    private int status;
+    private Integer status;
 
     private String ipaddr;
 

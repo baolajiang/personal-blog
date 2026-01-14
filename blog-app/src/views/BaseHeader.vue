@@ -134,7 +134,7 @@
                     <div class="uc-divider"></div>
                     <div class="uc-menu">
                       <div class="uc-menu-item" @click="navTo('/articles')"><i class="el-icon-document"></i> <span>我的文章</span></div>
-                      <div class="uc-menu-item" @click="navTo('/user/setting')"><i class="el-icon-setting"></i> <span>系統設置</span></div>
+                      <div class="uc-menu-item" @click="jumpToAdmin"><i class="el-icon-setting"></i> <span>系統設置</span></div>
                       <div class="uc-menu-item logout-item" @click="logout"><i class="el-icon-switch-button"></i> <span>登出帳戶</span></div>
                     </div>
                     <div class="uc-footer-deco"><span>☾</span> LUNA SYSTEM <span>❀</span></div>
@@ -206,6 +206,7 @@
 <script>
 import { gsap } from 'gsap'
 import md5 from 'js-md5'
+import { getTicket } from '@/api/login'
 export default {
   name: 'BaseHeader',
   props: { activeIndex: { type: String, default: '/' } },
@@ -405,6 +406,36 @@ export default {
     toggleMobileMenu() { this.isMobileMenuOpen = !this.isMobileMenuOpen; if (this.isMobileMenuOpen) { this.animateToFull(); document.body.style.overflow = 'hidden'; } else { document.body.style.overflow = ''; if (this.isScrolled) this.animateToCapsule(); } },
     closeMobileMenu() { this.isMobileMenuOpen = false; document.body.style.overflow = ''; if (this.isScrolled) this.animateToCapsule(); },
     navTo(path) { this.closeAllPanels(); this.$router.push({ path }); this.closeMobileMenu(); },
+    // 跳转到管理后台
+    jumpToAdmin() {
+      // 1. 关闭用户面板
+      this.closeAllPanels();
+
+      // 2. 获取当前 Token
+      const token = this.$store.state.token;
+      if (!token) {
+        this.$myMessage.error('請先登入');
+        return;
+      }
+
+      // 3. 配置后台管理系统的地址
+      const adminBaseUrl = 'http://localhost:48182';
+
+      // 4. 调用接口获取 Ticket
+      getTicket(token).then(res => {
+        if (res.success) {
+          const ticket = res.data;
+          // 5. 拼接 URL 并跳转 (例如: http://localhost:48182?ticket=TICKET_xxxx)
+          // 这里使用 location.href 进行整页跳转，而不是路由跳转
+          window.location.href = `${adminBaseUrl}?ticket=${ticket}`;
+        } else {
+          this.$myMessage.error(res.msg || '无法获取跳转凭证');
+        }
+      }).catch(err => {
+        console.error(err);
+        this.$myMessage.error('跳转失败，请稍后重试');
+      });
+    },
     logoutAndClose() { this.$store.dispatch('logout').then(() => { this.$router.push({path: '/'}); this.closeMobileMenu(); }); },
     logout() { this.closeAllPanels(); this.$store.dispatch('logout').then(() => { this.$router.push({path: '/'}) }) },
     login() { this.closeAllPanels(); this.$router.push({path: '/login'}) },

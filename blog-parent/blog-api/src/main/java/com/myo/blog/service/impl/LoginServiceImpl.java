@@ -88,11 +88,10 @@ public class LoginServiceImpl implements LoginService {
         }
         // ================== 封禁校验 ==================
         // 假设约定：status 为 "99" 时表示封禁，0 正常 1警告
-        if ("99".equals(sysUser.getStatus())) {
+        if (sysUser.getStatus() != null && sysUser.getStatus() == 99) {
             log.warn("该账号已被封禁 - 账号: {}", account);
             return Result.fail(ErrorCode.ACCOUNT_DISABLED.getCode(), "账号已被封禁，请联系管理员");
         }
-
 
         log.info("用户验证成功 - 用户ID: {}, 账号: {}, 昵称: {}", sysUser.getId(), account, sysUser.getNickname());
 

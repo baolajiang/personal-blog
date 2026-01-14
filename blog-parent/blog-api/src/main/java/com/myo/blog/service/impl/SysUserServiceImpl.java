@@ -199,9 +199,11 @@ public class SysUserServiceImpl implements SysUserService {
         boolean hasUpdate = false;
         // 定义一个标志位，判断是否需要踢下线
         boolean needKickout = false;
+        // === 处理封禁逻辑 ===
         if (StringUtils.isNotBlank(userParam.getStatus())) {
             updateWrapper.set(SysUser::getStatus, userParam.getStatus());
             hasUpdate = true;
+            // 如果状态是 99 (封禁)，标记为需要踢下线
             if ("99".equals(userParam.getStatus())) {
                 needKickout = true;
             }

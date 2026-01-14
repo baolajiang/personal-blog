@@ -62,7 +62,6 @@ public class LoginController {
     public Result getTicket(@RequestHeader("Authorization") String token) {
         // 生成一个随机票据 (去掉横杠的UUID)
         String ticket = "TICKET_" + UUID.randomUUID().toString().replace("-", "");
-
         // 存入 Redis：Key=票据, Value=Token, 有效期=30秒
         // 30秒后如果不兑换，自动作废，非常安全
         redisTemplate.opsForValue().set(ticket, token, 30, TimeUnit.SECONDS);

@@ -36,7 +36,7 @@ public class WebMVCConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         /* 拦截器配置 */
         //拦截test接口，拦截器主要用途：进行用户登录状态的拦截，日志的拦截等。
-        // 1. 【新增】注册黑名单拦截器 (放在最前面，先过这一关)
+        // 1.注册黑名单拦截器 (放在最前面，先过这一关)
         // addPathPatterns("/**") 表示拦截所有接口
         registry.addInterceptor(ipBlackListInterceptor)
                 .addPathPatterns("/**");
@@ -45,6 +45,8 @@ public class WebMVCConfig implements WebMvcConfigurer {
                 /*.addPathPatterns("/util/*")*/
                 .addPathPatterns("/test")
                 .addPathPatterns("/comments/create/change")
-                .addPathPatterns("/articles/publish");
+                .addPathPatterns("/articles/publish")
+                .addPathPatterns("/admin/**") // 保护后台接口
+                .addPathPatterns("/login/ticket"); // 保护获取票据的接口！
     }
 }

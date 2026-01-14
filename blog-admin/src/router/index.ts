@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Layout from '../layout/index.vue'
+import { exchangeToken } from '../api/login'
+import { ElMessage } from 'element-plus'
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -61,9 +63,6 @@ const routes: Array<RouteRecordRaw> = [
                 component: () => import('../views/system/log.vue'),
                 meta: { title: '操作日志' }
             },
-
-
-
         ]
     }
 ]
@@ -73,8 +72,50 @@ const router = createRouter({
     routes
 })
 
+// [新增] 全局路由守卫
+router.beforeEach(async (to, _from, next) => {
+    // 1. 获取 URL 里的 ticket 参数 (从前台跳过来的)
+    const ticket = to.query.ticket as string
 
+    // 2. 获取本地存储的 token (已登录过的)
+    const token = localStorage.getItem('token')
 
+    // === 情况 A: 带有 Ticket (正在进行单点登录) ===
+    if (ticket) {
+        try {
+            // 调用后端接口，用票据换 Token
+            const res = await exchangeToken(ticket)
+            if (res.data.success) {
+                // 换取成功：存 Token，提示成功
+                localStorage.setItem('token', res.data.data)
+                ElMessage.success('登录成功')
 
+                // 这里的 replace: true 是为了把 url 里的 ticket 参数洗掉，不让用户看见
+                next({ path: to.path, query: {}, replace: true })
+            } else {
+                ElMessage.error('票据已失效，请重新登录')
+                // 验证失败，踢回前台登录页
+                window.location.href = 'http://localhost:48082/#/login'
+            }
+        } catch (error) {
+            console.error(error)
+            window.location.href = 'http://localhost:48082/#/login'
+        }
+        return
+    }
+
+    // === 情况 B: 已有 Token (正常访问) ===
+    if (token) {
+        // 放行，让他进去
+        next()
+        return
+    }
+
+    // === 情况 C: 既没 Ticket 也没 Token (非法闯入) ===
+    // 拦截！直接踢回前台博客的登录页
+    ElMessage.warning('请先登录')
+    // ⚠️ 注意：请确保这个地址是你前台博客的真实地址
+    window.location.href = 'http://localhost:48082/#/login'
+})
 
 export default router

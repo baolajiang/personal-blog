@@ -23,9 +23,9 @@
 
         <el-table-column label="账号状态" width="100" align="center">
           <template #default="scope">
-            <el-tag v-if="scope.row.status === '99'" type="danger">已封禁</el-tag>
-            <el-tag v-else-if="scope.row.status === '1'" type="warning">警告</el-tag>
-            <el-tag v-else-if="scope.row.status === '0'" type="success">正常</el-tag>
+            <el-tag v-if="scope.row.status === 99" type="danger">已封禁</el-tag>
+            <el-tag v-else-if="scope.row.status === 1" type="warning">警告</el-tag>
+            <el-tag v-else-if="scope.row.status === 0" type="success">正常</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </template>
         </el-table-column>
@@ -188,12 +188,16 @@ const fetchData = async () => {
   loading.value = true
   try {
     const res: any = await getUserList(queryParams)
-    if (res.success && res.data) {
-      tableData.value = res.data.records
-      total.value = res.data.total
+
+    if (res.data.success && res.data.data) {
+
+      tableData.value = res.data.data.records
+      total.value = res.data.data.total
+
     } else if(res.records) {
-      tableData.value = res.records
-      total.value = res.total
+
+      tableData.value = res.data.srecords
+      total.value = res.data.stotal
     }
   } catch (error) {
     console.error('获取用户列表失败', error)
@@ -225,7 +229,7 @@ const handleDetail = (row: any) => {
   editForm.mobilePhoneNumber = row.mobilePhoneNumber
   editForm.avatar = row.avatar
   editForm.lastIpaddr = row.lastIpaddr || row.ipaddr
-  editForm.status = row.status
+  editForm.status = String(row.status) || '0'
 
   // 备份原始数据
   Object.assign(backupForm, editForm)
@@ -251,7 +255,7 @@ const submitEdit = async () => {
   submitLoading.value = true
   try {
     const res: any = await updateUser(editForm)
-    if (res.success) {
+    if (res.data.success) {
       ElMessage.success('保存成功')
       dialogVisible.value = false // 保存成功后关闭弹窗
       fetchData()
