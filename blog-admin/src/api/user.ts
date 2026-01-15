@@ -23,4 +23,14 @@ export function updateUser(data: any) {
     })
 }
 
+// ... existing code ...
+
+// 获取当前登录用户信息
+export function getCurrentUser() {
+    return request({
+        url: '/users/currentUser',
+        method: 'get'
+    })
+}
+
 

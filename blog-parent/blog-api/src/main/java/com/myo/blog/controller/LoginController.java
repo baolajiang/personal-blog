@@ -1,6 +1,9 @@
 package com.myo.blog.controller;
 
 import com.myo.blog.common.aop.RateLimit;
+import com.myo.blog.dao.mapper.SysUserMapper;
+import com.myo.blog.dao.pojo.SysUser;
+import com.myo.blog.entity.ErrorCode;
 import com.myo.blog.service.LoginService;
 import com.myo.blog.entity.Result;
 import com.myo.blog.entity.params.LoginParam;
@@ -12,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +28,9 @@ public class LoginController {
     private LoginService loginService;
     @Autowired
     private StringRedisTemplate redisTemplate;
-
+    // 注入 SysUserMapper 用于查询权限
+    @Autowired
+    private SysUserMapper sysUserMapper;
 
     // 防止暴力破解，1分钟限制5次
     @RateLimit(time = 60, count = 5, msg = "账号或密码错误次数过多，请1分钟后再试")
@@ -56,14 +62,29 @@ public class LoginController {
 
     /**
      * 获取一次性票据 (Ticket)
-     * 只有登录用户(带Token)才能调用，用于跳转后台时的安全验证
+     * 修正版：通过查询权限列表来验证是否为管理员
      */
     @PostMapping("ticket")
     public Result getTicket(@RequestHeader("Authorization") String token) {
-        // 生成一个随机票据 (去掉横杠的UUID)
+        // 1. 校验 Token
+        SysUser user = loginService.checkToken(token);
+        if (user == null) {
+            return Result.fail(ErrorCode.NO_LOGIN.getCode(), "未登录");
+        }
+
+        // 2.去数据库查该用户的权限列表
+        // 既然没有 admin 字段，那就看他有没有分配过权限。
+        // 如果 permissions 为空，说明他是普通用户，不能进后台。
+        List<String> permissions = sysUserMapper.findPermissionsByUserId(user.getId());
+
+        if (permissions == null || permissions.isEmpty()) {
+            return Result.fail(ErrorCode.NO_PERMISSION.getCode(), "您没有访问后台的权限");
+        }
+
+        // 3. 生成并存储 Ticket
         String ticket = "TICKET_" + UUID.randomUUID().toString().replace("-", "");
+
         // 存入 Redis：Key=票据, Value=Token, 有效期=30秒
-        // 30秒后如果不兑换，自动作废，非常安全
         redisTemplate.opsForValue().set(ticket, token, 30, TimeUnit.SECONDS);
 
         return Result.success(ticket);
