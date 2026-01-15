@@ -38,13 +38,11 @@ const userInfo = ref({
 const fetchUserInfo = async () => {
   try {
     const response = await getCurrentUser()
-    console.log('API响应:', response)
-    if (response.data.success) {
-      console.log('if')
-      userInfo.value = response.data.data
 
+    if (response.data.success) {
+      userInfo.value = response.data.data
     } else {
-      console.log('else')
+
       // API调用成功但业务逻辑失败（比如token失效）
       const errorCode = response.data.code
       const errorMessage = response.data.message || '获取用户信息失败'

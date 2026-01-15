@@ -72,7 +72,7 @@ const router = createRouter({
     routes
 })
 
-// [新增] 全局路由守卫
+//  全局路由守卫
 router.beforeEach(async (to, _from, next) => {
     // 1. 获取 URL 里的 ticket 参数 (从前台跳过来的)
     const ticket = to.query.ticket as string
@@ -82,6 +82,7 @@ router.beforeEach(async (to, _from, next) => {
 
     // === 情况 A: 带有 Ticket (正在进行单点登录) ===
     if (ticket) {
+
         try {
             // 调用后端接口，用票据换 Token
             const res = await exchangeToken(ticket)
@@ -107,6 +108,7 @@ router.beforeEach(async (to, _from, next) => {
     // === 情况 B: 已有 Token (正常访问) ===
     if (token) {
         // 放行，让他进去
+
         next()
         return
     }
@@ -114,7 +116,7 @@ router.beforeEach(async (to, _from, next) => {
     // === 情况 C: 既没 Ticket 也没 Token (非法闯入) ===
     // 拦截！直接踢回前台博客的登录页
     ElMessage.warning('请先登录')
-    // ⚠️ 注意：请确保这个地址是你前台博客的真实地址
+    //注意：请确保这个地址是你前台博客的真实地址
     window.location.href = 'http://localhost:48082/#/login'
 })
 

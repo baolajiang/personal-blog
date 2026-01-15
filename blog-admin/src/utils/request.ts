@@ -46,11 +46,12 @@ service.interceptors.response.use(
                 }, 1500)
 
                 // 返回一个reject的Promise，阻止后续处理
-                return Promise.reject(new Error(data.msg || 'Token验证失败'))
+                return Promise.reject(new Error(data.msg ))
             } else {
                 // 其他业务错误，显示错误信息
                 ElMessage.error(data.msg || '操作失败')
-                return Promise.reject(new Error(data.msg || '业务逻辑错误'))
+
+                return Promise.reject(new Error(data.msg))
             }
         }
 
