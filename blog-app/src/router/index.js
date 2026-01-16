@@ -21,17 +21,17 @@ import {getToken} from '@/request/token'
 Vue.use(Router)
 
 const router = new Router({
-	/* mode: 'history',*/
-	  scrollBehavior: function (to, from, savedPosition) {
-	       if (savedPosition) {
-	            return savedPosition
-	        } else {
-	            if (from.meta.keepAlive) {
-	                 from.meta.savedPosition = document.body.scrollTop;
-	            }
-	              return { x: 0, y: to.meta.savedPosition || 0 }
-	        }
-	  },
+  /*mode: 'history',*/
+  scrollBehavior: function (to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      if (from.meta.keepAlive) {
+        from.meta.savedPosition = document.body.scrollTop;
+      }
+      return {x: 0, y: to.meta.savedPosition || 0}
+    }
+  },
   routes: [
     {
       path: '/write/:id?',
@@ -50,11 +50,11 @@ const router = new Router({
         {
           path: '/',
           component: r => require.ensure([], () => r(require('@/views/Index')), 'index'),
-		  meta: {
-			  keepAlive: true ,// 需要缓存
-			  requireShow: true,
-		  }
-		},
+          meta: {
+            keepAlive: true,// 需要缓存
+            requireShow: true,
+          }
+        },
         {
           path: '/log',
           component: r => require.ensure([], () => r(require('@/views/Log')), 'log')
@@ -63,18 +63,18 @@ const router = new Router({
           path: '/articles/:year?/:month?',
           component: r => require.ensure([], () => r(require('@/views/blog/BlogArchive')), 'articles')
         },
-		{
-			path:'/nav',
-			component: r => require.ensure([], () => r(require('@/views/blog/BlogNavigate')), 'blogNavigate')
-		},
-		{
-			path:'/Resume',
-			component: r => require.ensure([], () => r(require('@/views/blog/BlogResume')), 'BlogResume')
-		},
-		{
-			path:'/Log',
-			component: r => require.ensure([], () => r(require('@/views/Log')), 'Log')
-		},
+        {
+          path: '/nav',
+          component: r => require.ensure([], () => r(require('@/views/blog/BlogNavigate')), 'blogNavigate')
+        },
+        {
+          path: '/Resume',
+          component: r => require.ensure([], () => r(require('@/views/blog/BlogResume')), 'BlogResume')
+        },
+        {
+          path: '/Log',
+          component: r => require.ensure([], () => r(require('@/views/Log')), 'Log')
+        },
         {
           path: '/messageBoard',
           component: r => require.ensure([], () => r(require('@/views/MessageBoard')), 'messageboard')
@@ -101,20 +101,19 @@ const router = new Router({
         },
 
 
-
       ]
     },
 
   ],
-/*   scrollBehavior(to, from, savedPosition) {
-	   console.debug(savedPosition)
-      if (savedPosition) {
-        return savedPosition
-      } else {
-        return { top: 0 }
-      }
-    }, */
-})
+  /*   scrollBehavior(to, from, savedPosition) {
+       console.debug(savedPosition)
+        if (savedPosition) {
+          return savedPosition
+        } else {
+          return { top: 0 }
+        }
+      }, */
+});
 //导航守卫
 router.beforeEach((to, from, next) => {
 	//to：你要去哪里

@@ -15,7 +15,7 @@ module.exports = {
     proxyTable: {
     	'/api': {
         target: process.env.NODE_ENV === 'production'
-          ? 'https://www.myo.pub:48882'
+          ? 'http://www.myo.pub:48882'
           : 'http://localhost:48882',
         changeOrigin: true,//是否跨域
         pathRewrite: {

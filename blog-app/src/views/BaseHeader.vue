@@ -428,9 +428,9 @@ export default {
       getTicket(token).then(res => {
         if (res.success) {
           const ticket = res.data;
-          // 5. 拼接 URL 并跳转 (例如: http://localhost:48182?ticket=TICKET_xxxx)
-          // 这里使用 location.href 进行整页跳转，而不是路由跳转
-          window.location.href = `${adminBaseUrl}?ticket=${ticket}`;
+          // 5. 拼接 URL 并在新标签页打开
+          const adminUrl = `${adminBaseUrl}?ticket=${ticket}`;
+          window.open(adminUrl, '_blank'); // 修改这里：使用 _blank 在新标签页打开
         } else {
           this.$myMessage.error(res.msg || '无法获取跳转凭证');
         }
