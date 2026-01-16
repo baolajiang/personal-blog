@@ -2,7 +2,9 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import Layout from '../layout/index.vue'
 import { exchangeToken } from '../api/login'
 import { ElMessage } from 'element-plus'
+import { getConfig } from '../utils/config'
 
+const { frontendLoginUrl } = getConfig()
 const routes: Array<RouteRecordRaw> = [
     {
         path: '/',
@@ -96,11 +98,11 @@ router.beforeEach(async (to, _from, next) => {
             } else {
                 ElMessage.error('票据已失效，请重新登录')
                 // 验证失败，踢回前台登录页
-                window.location.href = 'http://localhost:48082/#/login'
+                window.location.href = frontendLoginUrl
             }
         } catch (error) {
             console.error(error)
-            window.location.href = 'http://localhost:48082/#/login'
+            window.location.href = frontendLoginUrl
         }
         return
     }
@@ -117,7 +119,7 @@ router.beforeEach(async (to, _from, next) => {
     // 拦截！直接踢回前台博客的登录页
     ElMessage.warning('请先登录')
     //注意：请确保这个地址是你前台博客的真实地址
-    window.location.href = 'http://localhost:48082/#/login'
+    window.location.href = frontendLoginUrl
 })
 
 export default router

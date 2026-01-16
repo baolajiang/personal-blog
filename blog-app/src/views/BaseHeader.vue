@@ -207,6 +207,7 @@
 import { gsap } from 'gsap'
 import md5 from 'js-md5'
 import { getTicket } from '@/api/login'
+import { APP_CONFIG } from '../../config/config.js'
 export default {
   name: 'BaseHeader',
   props: { activeIndex: { type: String, default: '/' } },
@@ -234,12 +235,14 @@ export default {
   },
   computed: {
     user() {
+      console.log(APP_CONFIG)
       let login = this.$store.state.account ? this.$store.state.account.length != 0 : false
       let avatar = this.$store.state.avatar; let nickname = this.$store.state.name; let email = this.$store.state.email
       return { login, avatar, nickname, email }
     },
     //  从 Store 获取游客信息 (全局数据)
     guest() {
+
       return this.$store.state.guest;
     },
 /*    guestAvatarDisplay() {
@@ -418,8 +421,8 @@ export default {
         return;
       }
 
-      // 3. 配置后台管理系统的地址
-      const adminBaseUrl = 'http://localhost:48182';
+      // 3. 配置后台管理系统的地址 (从环境变量获取)
+      const adminBaseUrl = APP_CONFIG.adminUrl;
 
       // 4. 调用接口获取 Ticket
       getTicket(token).then(res => {

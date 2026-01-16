@@ -13,8 +13,10 @@ module.exports = {
     // 代理配置表，在这里可以配置特定的请求代理到对应的API接口
     // 例如将'localhost:48082/'代理到 http://localhost:48882
     proxyTable: {
-    	'/api': {		/**www.myo.pub**/
-        target: 'http://localhost:48882',// 后台接口域名
+    	'/api': {
+        target: process.env.NODE_ENV === 'production'
+          ? 'https://www.myo.pub:48882'
+          : 'http://localhost:48882',
         changeOrigin: true,//是否跨域
         pathRewrite: {
           '^/api': '/',//路径的替换规则

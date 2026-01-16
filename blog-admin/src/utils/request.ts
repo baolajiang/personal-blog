@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { getConfig } from './config.ts'
 
+const { frontendLoginUrl } = getConfig()
 // 创建 axios 实例
 const service = axios.create({
     // 这里必须填 /api，配合 vite.config.ts 代理
@@ -42,7 +44,7 @@ service.interceptors.response.use(
 
                 // 跳转到app端登录页面
                 setTimeout(() => {
-                    window.location.href = 'http://localhost:48082/#/login'
+                    window.location.href = frontendLoginUrl
                 }, 1500)
 
                 // 返回一个reject的Promise，阻止后续处理
@@ -73,7 +75,7 @@ service.interceptors.response.use(
 
                 // 跳转到app端登录页面
                 setTimeout(() => {
-                    window.location.href = 'http://localhost:48082/#/login'
+                    window.location.href = frontendLoginUrl
                 }, 1500)
             } else if (status >= 500) {
                 ElMessage.error('服务器错误，请稍后重试')

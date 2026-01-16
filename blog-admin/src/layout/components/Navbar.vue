@@ -25,6 +25,9 @@ import { ArrowDown } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, onMounted } from 'vue'
 import { getCurrentUser } from '../../api/user'
+import { getConfig } from '../../utils/config'
+
+const { frontendLoginUrl } = getConfig()
 
 // 用户信息
 const userInfo = ref({
@@ -38,30 +41,15 @@ const userInfo = ref({
 const fetchUserInfo = async () => {
   try {
     const response = await getCurrentUser()
-
     if (response.data.success) {
       userInfo.value = response.data.data
     } else {
-
       // API调用成功但业务逻辑失败（比如token失效）
-      const errorCode = response.data.code
       const errorMessage = response.data.message || '获取用户信息失败'
-
-      if (errorCode === 401 || errorCode === 403 || errorMessage.includes('token') || errorMessage.includes('登录')) {
-        // Token失效，清除本地存储并跳转
-        localStorage.removeItem('token')
-        ElMessage.error('登录已过期，请重新登录')
-        setTimeout(() => {
-          window.location.href = 'http://localhost:48082/#/login'
-        }, 1500)
-      } else {
-        ElMessage.error(errorMessage)
+      ElMessage.error(errorMessage)
       }
-    }
   } catch (error) {
-    console.log(error)
     console.error('获取用户信息失败:', error)
-    // 这里不需要再处理，因为响应拦截器已经处理了
   }
 }
 
@@ -80,7 +68,7 @@ const handleLogout = () => {
     ElMessage.success('退出成功')
 
     // 3. 强制跳转回前台登录页 (请确保端口号对应你的前台项目)
-    window.location.href = 'http://localhost:48082/#/login'
+    window.location.href = frontendLoginUrl
   }).catch(() => {
     // 取消退出，不做操作
   })
