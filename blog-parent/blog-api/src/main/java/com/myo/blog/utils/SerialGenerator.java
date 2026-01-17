@@ -1,6 +1,6 @@
 package com.myo.blog.utils;
 
-import com.myo.blog.config.BlogProperties; // 导入配置类
+import com.myo.blog.config.BlogProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -9,19 +9,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
-/**
- * 全局唯一ID生成器
- * 1. 时间部分（14位）：精确到毫秒级别的时间戳。
- * 2. 机器码部分（2位）：01-99，用于区分不同的部署实例。
- * 3. 随机数部分（2位）：10-99，增加随机性，防止碰撞。
- * 4. 序列号部分（4位）：1000-9999，用于在同一毫秒内生成多个ID。
- */
+
 @Component
 public class SerialGenerator {
 
-    private static Long MACHINE_ID;
+    private static Long MACHINE_ID= 1L;
+    private static final int MAX_SEQUENCE = 9999;
+    private static final int MIN_RANDOM = 1;
+    private static final int MAX_RANDOM = 99;
 
-    // 注入强类型配置类，而不是用 @Value
     @Autowired
     private BlogProperties blogProperties;
 
@@ -29,16 +25,13 @@ public class SerialGenerator {
 
     @PostConstruct
     public void init() {
-        // 从对象中获取属性
         MACHINE_ID = blogProperties.getMachine().getId();
-
         if (MACHINE_ID == null || MACHINE_ID < 1 || MACHINE_ID > 99) {
             MACHINE_ID = 1L;
         }
         System.out.println("当前机器码已初始化为: " + MACHINE_ID);
     }
 
-    // 生成全局唯一的字符串
     public static String generate(String bizPrefix) {
         // A. 时间部分
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -47,17 +40,35 @@ public class SerialGenerator {
         // B. 机器码部分
         String machineStr = String.format("%02d", MACHINE_ID);
 
-        // C. 随机数部分
-        int randomNum = ThreadLocalRandom.current().nextInt(10, 99);
+        // C. 随机数部分 - 确保始终2位数
+        int randomNum = ThreadLocalRandom.current().nextInt(MIN_RANDOM, MAX_RANDOM + 1);
+        String randomStr = String.format("%02d", randomNum);  // 强制格式化为2位数
 
         // D. 序列号部分
-        long seq = atomicSeq.addAndGet(ThreadLocalRandom.current().nextInt(1, 3));
-        if (seq > 9999) {
-            atomicSeq.set(1);
-            seq = 1;
-        }
+        long seq = getNextSequence();
         String seqStr = String.format("%04d", seq);
 
-        return bizPrefix + dateStr + machineStr + randomNum + seqStr;
+        return bizPrefix + dateStr + machineStr + randomStr + seqStr;
+    }
+
+    private static long getNextSequence() {
+        while (true) {
+            long currentSeq = atomicSeq.get();
+            long nextSeq = currentSeq + ThreadLocalRandom.current().nextInt(1, 3);
+
+            if (nextSeq > MAX_SEQUENCE) {
+                // 尝试重置序列号
+                if (atomicSeq.compareAndSet(currentSeq, 1)) {
+                    return 1;
+                }
+                // 如果重置失败，继续循环重试
+            } else {
+                // 尝试递增序列号
+                if (atomicSeq.compareAndSet(currentSeq, nextSeq)) {
+                    return nextSeq;
+                }
+                // 如果递增失败，继续循环重试
+            }
+        }
     }
 }
