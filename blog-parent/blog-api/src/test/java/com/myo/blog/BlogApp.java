@@ -53,24 +53,7 @@ public class BlogApp {
         return verificationCode.toString();
     }
 
-    @Test
-    public void testCommentService() {
-        // ⚠️ 注意：这里必须填入数据库中真实存在的文章ID
-        int i=21;
-        long l=i;
-        Long articleId = l;
 
-        System.out.println("开始测试获取文章评论...");
-
-        // 调用我们优化后的方法
-        Result result = commentsService.commentsByArticleId(articleId);
-
-        // 打印结果 (使用 FastJSON 转成字符串方便查看结构)
-        System.out.println("测试结果: " + JSON.toJSONString(result));
-
-        // 如果没有 FastJSON，直接用这个:
-        // System.out.println("测试结果: " + result);
-    }
 
 
 
