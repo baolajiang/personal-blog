@@ -23,7 +23,7 @@ public class CommentsController {
 
     ///comments/article/{id}
     @GetMapping("article/{id}")
-    public Result comments(@PathVariable("id") Long id){
+    public Result comments(@PathVariable("id") String id){
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip = IpUtils.getIpAddr(request);
         log.info("查询文章评论 - IP: {}, 文章ID: {}", ip, id);
@@ -44,7 +44,7 @@ public class CommentsController {
     public Result comment(@RequestBody CommentParam commentParam){
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip = IpUtils.getIpAddr(request);
-        Long articleId = commentParam.getArticleId();
+        String articleId = commentParam.getArticleId();
         log.info("发布评论 - IP: {}, 文章ID: {}", ip, articleId);
 
         try {
@@ -62,7 +62,7 @@ public class CommentsController {
     }
 
     @GetMapping("queryCommentCount/{id}")
-    public Result show(@PathVariable("id") Long id){
+    public Result show(@PathVariable("id") String id){
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip = IpUtils.getIpAddr(request);
         log.debug("查询评论数量 - IP: {}, 文章ID: {}", ip, id);

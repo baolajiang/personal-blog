@@ -21,7 +21,7 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryMapper categoryMapper;
 
     @Override
-    public CategoryVo findCategoryById(Long categoryId) {
+    public CategoryVo findCategoryById(String categoryId) {
         Category category = categoryMapper.selectById(categoryId);
         CategoryVo categoryVo = new CategoryVo();
         BeanUtils.copyProperties(category,categoryVo);
@@ -47,13 +47,13 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Result categoryDetailById(Long id) {
+    public Result categoryDetailById(String id) {
         Category category = categoryMapper.selectById(id);
         return Result.success(copy(category));
     }
 
     @Override
-    public List<Category> findCategoryByIds(Collection<Long> ids) {
+    public List<Category> findCategoryByIds(Collection<String> ids) {
         // 使用你已經注入的 categoryMapper
         return categoryMapper.selectBatchIds(ids);
     }

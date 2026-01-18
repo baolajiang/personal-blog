@@ -9,7 +9,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
-
+/**
+ * 序列号生成器
+ * @author tangmengxi
+ * @date 2024/11/13 10:20
+ */
 @Component
 public class SerialGenerator {
 

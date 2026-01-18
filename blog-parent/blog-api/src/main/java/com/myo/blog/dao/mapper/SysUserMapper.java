@@ -17,13 +17,13 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @return 权限标识列表
      */
      //这个方法，对应 XML 里的 <select id="findPermissionsByUserId">
-    List<String> findPermissionsByUserId(Long userId);
+    List<String> findPermissionsByUserId(String userId);
 
     /**
      * 插入用户角色关联关系
      * @param userId 用户ID
      * @param roleId 角色ID
      */
-    void insertUserRole(@Param("userId") Long userId, @Param("roleId") Long roleId);
+    void insertUserRole(@Param("userId") String userId, @Param("roleId") Long roleId);
 
 }

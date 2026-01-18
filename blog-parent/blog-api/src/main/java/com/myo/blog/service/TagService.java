@@ -7,9 +7,7 @@ import java.util.List;
 
 public interface TagService {
 
-    List<TagVo> findTagsByArticleId(Long articleId);
-
-
+    List<TagVo> findTagsByArticleId(String articleId); // Long -> String
 
     Result hots(int limit);
 
@@ -21,5 +19,5 @@ public interface TagService {
 
     Result findAllDetail();
 
-    Result findDetailById(Long id);
+    Result findDetailById(String id); // Long -> String
 }

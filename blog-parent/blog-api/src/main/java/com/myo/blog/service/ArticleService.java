@@ -44,7 +44,7 @@ public interface ArticleService {
      * @param articleId
      * @return
      */
-    Result findArticleById(Long articleId,String token);
+    Result findArticleById(String articleId,String token);
 
     /**
      * 文章发布服务

@@ -1,5 +1,7 @@
 package com.myo.blog.dao.pojo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 /**
@@ -10,15 +12,18 @@ import lombok.Data;
  */
 @Data
 public class Message {
-    private Long id;
+    // 1. ID 改为 String，并指定自定义 UUID 策略
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
 
     private String content;
 
-    private Long parentId;
+    // 2. 关联字段全部改成 String
+    private String parentId; // 对应 parent_id
 
-    private Long authorId;
+    private String authorId; // 对应 author_id (之前报错的就是这个)
 
-    private Long toUid;
+    private String toUid;    // 对应 to_uid
 
     private Long createDate;
 

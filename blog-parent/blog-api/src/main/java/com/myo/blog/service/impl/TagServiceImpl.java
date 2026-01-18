@@ -34,7 +34,7 @@ public class TagServiceImpl implements TagService {
         return tagVoList;
     }
     @Override
-    public List<TagVo> findTagsByArticleId(Long articleId) {
+    public List<TagVo> findTagsByArticleId(String articleId) {
         //mybatisplus 无法进行多表查询
         List<Tag> tags = tagMapper.findTagsByArticleId(articleId);
         return copyList(tags);
@@ -47,7 +47,7 @@ public class TagServiceImpl implements TagService {
          * 1. 标签所拥有的文章数量最多 最热标签
          * 2. 查询 根据tag_id 分组 计数，从大到小 排列 取前 limit个
          */
-        List<Long> tagIds = tagMapper.findHotsTagIds(limit);
+        List<String> tagIds = tagMapper.findHotsTagIds(limit);
         if (CollectionUtils.isEmpty(tagIds)){
             return Result.success(Collections.emptyList());
         }
@@ -73,7 +73,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Result findDetailById(Long id) {
+    public Result findDetailById(String id) {
         Tag tag = tagMapper.selectById(id);
         return Result.success(copy(tag));
     }

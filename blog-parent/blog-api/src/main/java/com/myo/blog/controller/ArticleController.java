@@ -37,12 +37,7 @@ public class ArticleController {
 
         return articleService.listArticle(pageParams,token);
     }
-    //查询文章count数量
-    @PostMapping ("getListArticleCount")
-    public Result getListArticleC0ount(@RequestHeader("Authorization") String token){
 
-        return articleService.listArticleCount(token);
-    }
     //查询mac
     @PostMapping ("queryMAC")
     public Result queryMAC(){
@@ -82,7 +77,7 @@ public class ArticleController {
 
 
     @PostMapping("view/{id}")
-    public Result findArticleById(@PathVariable("id") Long articleId,@RequestHeader("Authorization") String token){
+    public Result findArticleById(@PathVariable("id") String articleId, @RequestHeader("Authorization") String token){
         // 将 token 传递给 service 层，用于权限验证
         return articleService.findArticleById(articleId,token);
     }

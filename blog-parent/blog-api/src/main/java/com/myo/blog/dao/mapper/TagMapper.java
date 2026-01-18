@@ -15,7 +15,7 @@ public interface TagMapper extends BaseMapper<Tag> {
      * @param articleId
      * @return
      */
-    List<Tag> findTagsByArticleId(Long articleId);
+    List<Tag> findTagsByArticleId(String articleId);
 
 
     /**
@@ -23,7 +23,7 @@ public interface TagMapper extends BaseMapper<Tag> {
      * @param limit
      * @return
      */
-    List<Long> findHotsTagIds(int limit);
+    List<String> findHotsTagIds(int limit);
 
-    List<Tag> findTagsByTagIds(List<Long> tagIds);
+    List<Tag> findTagsByTagIds(List<String> tagIds);
 }

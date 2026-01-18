@@ -1,5 +1,7 @@
 package com.myo.blog.dao.pojo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -7,11 +9,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 @Data
 public class SysUser {
 
-//    @TableId(type = IdType.ASSIGN_ID) // 默认id类型
-    // 以后 用户多了之后，要进行分表操作，id就需要用分布式id了
-//    @TableId(type = IdType.AUTO) 数据库自增
-    @JsonSerialize(using = ToStringSerializer.class)
-    private Long id;
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
 
     private String account;
 

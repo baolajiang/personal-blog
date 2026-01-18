@@ -6,12 +6,12 @@ import lombok.Data;
 
 @Data
 public class ArticleBody {
-    // 同样修改为雪花算法
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
 
 
     private String content;
     private String contentHtml;
-    private Long articleId;
+    private String articleId;// 关联文章ID
 }

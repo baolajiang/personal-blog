@@ -21,7 +21,7 @@ public class JWTUtils {
         return Keys.hmacShaKeyFor(jwtToken.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static String createToken(Long userId){
+    public static String createToken(String userId){
         Map<String,Object> claims = new HashMap<>();
         claims.put("userId",userId);
 
@@ -49,10 +49,5 @@ public class JWTUtils {
         return null;
     }
 
-    public static void main(String[] args) {
-        String token = JWTUtils.createToken(100L);
-        System.out.println("生成的 Token: " + token);
-        Map<String, Object> map = JWTUtils.checkToken(token);
-        System.out.println("解析的结果: " + map);
-    }
+
 }

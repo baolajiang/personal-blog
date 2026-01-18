@@ -9,7 +9,7 @@ public interface CommentsService {
      * @param id
      * @return
      */
-    Result commentsByArticleId(Long id);
+    Result commentsByArticleId(String id);
      /**
      * 新增评论
      * @param commentParam

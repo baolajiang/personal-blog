@@ -112,7 +112,7 @@ public class LoginServiceImpl implements LoginService {
      * 更新用户登录信息
      * @param userId 用户ID
      */
-    public void updateLoginInfo(Long userId){
+    public void updateLoginInfo(String userId){
         HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
         String ip= IpUtils.getIpAddr(request);
         log.debug("更新用户登录信息 - 用户ID: {}, 登录IP: {}", userId, ip);
@@ -165,7 +165,7 @@ public class LoginServiceImpl implements LoginService {
         }
 
         // 数据库有记录 -> 复活 Session
-        Long userId = userToken.getUserId();
+        String userId = userToken.getUserId();
         SysUser sysUser = sysUserService.findUserById(userId);
 
         // 重新写回 Redis

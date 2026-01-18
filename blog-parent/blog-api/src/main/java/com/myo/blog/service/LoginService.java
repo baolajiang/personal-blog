@@ -37,7 +37,7 @@ public interface LoginService {
      * 更新登录信息（最后登录IP、最后登录时间）
      * @param userId
      */
-    void updateLoginInfo(Long userId);
+    void updateLoginInfo(String userId);
     // 发送验证码接口定义
     Result sendEmailCode(String email);
 }

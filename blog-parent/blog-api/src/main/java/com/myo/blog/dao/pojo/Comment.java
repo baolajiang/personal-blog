@@ -1,5 +1,7 @@
 package com.myo.blog.dao.pojo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 /**
@@ -8,19 +10,20 @@ import lombok.Data;
 @Data
 public class Comment {
 
-    private Long id;
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
 
     private String content;
 
     private Long createDate;
 
-    private Long articleId;
+    private String articleId;
 
-    private Long authorId;
+    private String authorId;
 
-    private Long parentId;
+    private String parentId;
 
-    private Long toUid;
+    private String toUid;
 
     private Integer level;
 

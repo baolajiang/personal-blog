@@ -10,9 +10,8 @@ public class Article {
     public static final int Article_TOP = 1;
 
     public static final int Article_Common = 0;
-    // 修改为雪花算法ID生成策略
-    @TableId(type = IdType.ASSIGN_ID)
-    private Long id;
+    @TableId(type = IdType.ASSIGN_UUID)
+    private String id;
 
     private String title;
 
@@ -29,15 +28,15 @@ public class Article {
     /**
      * 作者id
      */
-    private Long authorId;
+    private String authorId;
     /**
      * 内容id
      */
-    private Long bodyId;
+    private String bodyId;
     /**
      *类别id
      */
-    private Long categoryId;
+    private String categoryId;
 
     /**
      * 置顶

@@ -1,5 +1,6 @@
 package com.myo.blog.controller;
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.myo.blog.exception.BusinessException;
 import com.myo.blog.exception.ParamException;
 import com.myo.blog.service.CategoryService;
@@ -40,8 +41,9 @@ public class CategoryController {
 
     ///category/detail/{id}
     @GetMapping("detail/{id}")
-    public Result categoryDetailById(@PathVariable("id") Long id) {
-        if (id == null || id <= 0) {
+    public Result categoryDetailById(@PathVariable("id") String id) {
+        // 修改判空逻辑
+        if (StringUtils.isBlank(id)) {
             throw new ParamException("分类ID不能为空");
         }
         try {

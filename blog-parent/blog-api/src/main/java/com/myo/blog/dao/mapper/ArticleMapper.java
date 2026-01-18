@@ -18,8 +18,8 @@ public interface ArticleMapper extends BaseMapper<Article> {
 
 
     IPage<Article> listArticle(Page<Article> page,
-                               Long categoryId,
-                               Long tagId,
+                               String categoryId,
+                               String tagId,
                                String year,
                                String month,
                                boolean isToken

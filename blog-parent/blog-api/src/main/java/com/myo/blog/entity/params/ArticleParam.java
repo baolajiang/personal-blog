@@ -7,11 +7,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.List;
-
+/**
+ * Created by IntelliJ IDEA.
+ *
+ * @Author : myo
+ * @create 2023/8/10 15:40
+ */
+/**
+ * 文章参数
+ */
 @Data
 public class ArticleParam {
 
-    private Long id;
+    private String id;
 
     private ArticleBodyParam body;
 

@@ -9,9 +9,9 @@ public class PageParams {
 
     private int pageSize = 10;
 
-    private Long categoryId;
+    private String categoryId;
 
-    private Long tagId;
+    private String tagId;
 
     private String year;
 

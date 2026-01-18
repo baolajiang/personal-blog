@@ -18,9 +18,9 @@ import java.util.List;
  */
 public interface SysUserService {
 
-    UserVo findUserVoById(Long id);
+    UserVo findUserVoById(String id); // Long -> String
 
-    SysUser findUserById(Long id);
+    SysUser findUserById(String id); // Long -> String
 
     SysUser findUser(String account, String password);
 
@@ -79,7 +79,7 @@ public interface SysUserService {
     /**
      * 批量查詢使用者
      */
-    List<SysUser> findUserByIds(Collection<Long> ids);
+    List<SysUser> findUserByIds(Collection<String> ids);
 
      /**
      * 分页查询用户列表

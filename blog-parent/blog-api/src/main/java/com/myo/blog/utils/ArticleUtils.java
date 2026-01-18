@@ -1,12 +1,14 @@
 package com.myo.blog.utils;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 
 /**
- * Created by IntelliJ IDEA.
- *
- * @Author : myo
- * @create 2023/9/29 10:33
+ * 文章工具类
+ * 提供文章相关的工具方法
+ * 1. 生成加密/乱码字符串
+ * 2. 将 Long 类型的时间戳转换为格式化的 String 时间
  */
 public class ArticleUtils {
 
@@ -52,5 +54,20 @@ public class ArticleUtils {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * 将 Long 类型的时间戳转换为格式化的 String 时间
+     * 解决 ArticleServiceImpl 报错的问题
+     * @param time 毫秒级时间戳
+     * @return 格式化后的时间字符串 (yyyy-MM-dd HH:mm)
+     */
+    public static String time(Long time) {
+        if (time == null) {
+            return "";
+        }
+        // 定义时间格式
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return sdf.format(new Date(time));
     }
 }
